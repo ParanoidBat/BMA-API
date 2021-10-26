@@ -1,4 +1,4 @@
-import { Users, Attendances } from "../db/dbConnector.js";
+import { Users, Advances } from "../db/dbConnector.js";
 
 export const queryResolvers = {
   getAllUsers: (root, {}) => {
@@ -15,6 +15,15 @@ export const queryResolvers = {
       Users.findById(id, (err, user) => {
         if (err) reject(err);
         else resolve(user);
+      });
+    });
+  },
+
+  getAllAdvances: () => {
+    return new Promise((resolve, reject) => {
+      Advances.find((err, advances) => {
+        if (err) reject(err);
+        else resolve(advances);
       });
     });
   },

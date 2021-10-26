@@ -7,13 +7,29 @@ export const inputTypes = `
 }
 
 input UserInput {
-  id: ID
   name: String!
-  authID: String!
-  attendanceCount: [AttendanceInput]
+  authID: Int!
   phone: String
   address: String
   salary: Int
   isAdmin: Boolean
+}
+
+input UpdateUserInput {
+  name: String
+  authID: Int
+  attendanceCount: [AttendanceInput]
+  phone: String
+  address: String
+  salary: Int
+  advance: AdvanceInput
+  isAdmin: Boolean
+}
+
+input AdvanceInput {
+  id: ID
+  amount: Int!
+  userID: ID!
+  userName: String!
 }
 `;

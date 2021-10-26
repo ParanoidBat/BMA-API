@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const { environment } = require("../config/config");
 const { userSchema } = require("./schema/userSchema.ts");
 const { attendanceSchema } = require("./schema/attendanceSchema.ts");
+const { advanceSchema } = require("./schema/advanceSchema.ts");
+
 const env = process.env.NODE_ENV || "development";
 
 mongoose.connect(
@@ -19,5 +21,6 @@ db.on("error", () => {
 
 const Users = mongoose.model("Users", userSchema);
 const Attendances = mongoose.model("Attendances", attendanceSchema);
+const Advances = mongoose.model("Advances", advanceSchema);
 
-export { Users, Attendances };
+export { Users, Attendances, Advances };

@@ -3,18 +3,17 @@ import { inputTypes } from "./inputTypes";
 import { queryTypes } from "./queryTypes";
 import { mutationTypes } from "./mutationTypes";
 
-// in user type, add advance
-
 const schema =
   `
   type User {
   id: ID
   name: String!
-  authID: String!
+  authID: Int!
   attendanceCount: [Attendance]
   phone: String
   address: String
   salary: Int
+  advance: Advance
   isAdmin: Boolean
 }
 
@@ -22,6 +21,13 @@ type Attendance {
   date: String!
   timeIn: String
   timeOut: String
+}
+
+type Advance {
+  id: ID
+  amount: Int
+  userID: ID
+  userName: String
 }
 ` +
   inputTypes +
