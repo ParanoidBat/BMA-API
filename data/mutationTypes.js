@@ -5,4 +5,6 @@ export const mutationTypes = `
   deleteUser(id: ID): Boolean
   addAttendance(input: AttendanceInput): Attendance
   createAdvance(input: AdvanceInput): Advance
+  updateAdvance(input: UpdateAdvanceInput, id: ID): Advance
+  deleteAdvance(id: ID): Boolean
 }`;

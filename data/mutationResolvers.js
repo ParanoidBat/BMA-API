@@ -72,4 +72,27 @@ export const mutationResolvers = {
       });
     });
   },
+
+  updateAdvance: (root, { input, id }) => {
+    return new Promise((resolve, reject) => {
+      Advances.findByIdAndUpdate(
+        id,
+        input,
+        { runValidators: true, new: true },
+        (err, advance) => {
+          if (err) reject(err);
+          else resolve(advance);
+        }
+      );
+    });
+  },
+
+  deleteAdvance: (root, { id }) => {
+    return new Promise((resolve, reject) => {
+      Advances.findByIdAndDelete(id, (err) => {
+        if (err) reject(err);
+        else resolve(true);
+      });
+    });
+  },
 };
