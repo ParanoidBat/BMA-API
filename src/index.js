@@ -7,10 +7,6 @@ connectDB();
 
 const server = new ApolloServer({ typeDefs, resolvers });
 
-// app.get("/", (req, res) => {
-//   res.send("Apollo GraphQL Express server is ready");
-// });
-
 server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
   console.log(`Server is running at ${url}`);
 });

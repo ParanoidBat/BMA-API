@@ -1,7 +1,7 @@
 const { gql } = require("apollo-server");
 const inputTypes = require("./inputTypes");
 const queryTypes = require("./queryTypes");
-mutationTypes = require("./mutationTypes");
+const mutationTypes = require("./mutationTypes");
 
 const schema =
   `
