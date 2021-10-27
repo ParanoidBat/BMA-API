@@ -8,7 +8,7 @@ const app = express();
 server.applyMiddleware({ app });
 
 app.get("/", (req, res) => {
-  console.log("Apollo GraphQL Express server is ready");
+  res.send("Apollo GraphQL Express server is ready");
 });
 
 app.listen(process.env.PORT || 8080, () => {
