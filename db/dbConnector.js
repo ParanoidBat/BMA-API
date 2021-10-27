@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { environment } = require("../config/config");
 const { userSchema } = require("./schema/userSchema.ts");
 const { attendanceSchema } = require("./schema/attendanceSchema.ts");
 const { advanceSchema } = require("./schema/advanceSchema.ts");
