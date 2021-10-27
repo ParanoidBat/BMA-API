@@ -1,8 +1,8 @@
-import { Advances } from "../db/dbConnector.js";
-import { queryResolvers } from "./queryResolvers";
-import { mutationResolvers } from "./mutationResolvers";
+const Advances = require("../db/schema/advanceSchema");
+const queryResolvers = require("./queryResolvers");
+const mutationResolvers = require("./mutationResolvers");
 
-export const resolvers = {
+const resolvers = {
   Query: queryResolvers,
   Mutation: mutationResolvers,
   User: {
@@ -16,3 +16,5 @@ export const resolvers = {
     },
   },
 };
+
+module.exports = resolvers;

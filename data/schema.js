@@ -1,7 +1,7 @@
-import { gql } from "apollo-server-express";
-import { inputTypes } from "./inputTypes";
-import { queryTypes } from "./queryTypes";
-import { mutationTypes } from "./mutationTypes";
+const { gql } = require("apollo-server");
+const inputTypes = require("./inputTypes");
+const queryTypes = require("./queryTypes");
+mutationTypes = require("./mutationTypes");
 
 const schema =
   `
@@ -34,6 +34,8 @@ type Advance {
   queryTypes +
   mutationTypes;
 
-export const typeDefs = gql`
+const typeDefs = gql`
   ${schema}
 `;
+
+module.exports = typeDefs;

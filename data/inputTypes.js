@@ -1,4 +1,4 @@
-export const inputTypes = `
+const inputTypes = `
   input AttendanceInput {
   userID: ID!
   date: String!
@@ -38,3 +38,5 @@ input UpdateAdvanceInput {
   userName: String
 }
 `;
+
+module.exports = inputTypes;

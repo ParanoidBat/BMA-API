@@ -1,6 +1,7 @@
-import { Users, Advances } from "../db/dbConnector.js";
+const Advances = require("../db/schema/advanceSchema");
+const Users = require("../db/schema/userSchema");
 
-export const queryResolvers = {
+const queryResolvers = {
   getAllUsers: (root, {}) => {
     return new Promise((resolve, reject) => {
       Users.find((err, users) => {
@@ -28,3 +29,5 @@ export const queryResolvers = {
     });
   },
 };
+
+module.exports = queryResolvers;

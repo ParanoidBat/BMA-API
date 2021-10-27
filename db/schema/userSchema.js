@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-export const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   name: String,
   authID: {
     type: Number,
@@ -15,3 +15,7 @@ export const userSchema = new mongoose.Schema({
   },
   isAdmin: Boolean,
 });
+
+const Users = mongoose.model("Users", userSchema);
+
+module.exports = Users;

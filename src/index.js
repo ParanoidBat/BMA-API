@@ -1,18 +1,16 @@
-import express from "express";
-import { ApolloServer } from "apollo-server-express";
-import { resolvers } from "../data/resolvers.js";
-import { typeDefs } from "../data/schema.js";
+const { ApolloServer } = require("apollo-server");
+const resolvers = require("../data/resolvers.js");
+const typeDefs = require("../data/schema.js");
+const connectDB = require("../db/dbConnector.js");
+
+connectDB();
 
 const server = new ApolloServer({ typeDefs, resolvers });
-const app = express();
-server.applyMiddleware({ app });
 
-app.get("/", (req, res) => {
-  res.send("Apollo GraphQL Express server is ready");
-});
+// app.get("/", (req, res) => {
+//   res.send("Apollo GraphQL Express server is ready");
+// });
 
-app.listen(process.env.PORT || 8080, () => {
-  console.log(
-    `Server is running at http://localhost:8080${server.graphqlPath}`
-  );
+server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
+  console.log(`Server is running at ${url}`);
 });

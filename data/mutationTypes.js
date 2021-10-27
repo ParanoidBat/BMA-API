@@ -1,4 +1,4 @@
-export const mutationTypes = `
+const mutationTypes = `
   type Mutation {
   createUser(input: UserInput): User
   updateUser(input: UpdateUserInput, id: ID): User
@@ -8,3 +8,5 @@ export const mutationTypes = `
   updateAdvance(input: UpdateAdvanceInput, id: ID): Advance
   deleteAdvance(id: ID): Boolean
 }`;
+
+module.exports = mutationTypes;

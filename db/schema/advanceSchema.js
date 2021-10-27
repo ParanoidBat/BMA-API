@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-export const advanceSchema = new mongoose.Schema({
+const advanceSchema = new mongoose.Schema({
   amount: {
     type: Number,
     min: 0,
@@ -10,3 +10,7 @@ export const advanceSchema = new mongoose.Schema({
 
   userName: String,
 });
+
+const Advances = mongoose.model("Advances", advanceSchema);
+
+module.exports = Advances;

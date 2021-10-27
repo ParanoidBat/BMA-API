@@ -1,6 +1,8 @@
-import { Users, Attendances, Advances } from "../db/dbConnector.js";
+const Advances = require("../db/schema/advanceSchema");
+const Users = require("../db/schema/userSchema");
+const Attendances = require("../db/schema/attendanceSchema");
 
-export const mutationResolvers = {
+const mutationResolvers = {
   createUser: (root, { input }) => {
     const newUser = new Users(input);
 
@@ -96,3 +98,5 @@ export const mutationResolvers = {
     });
   },
 };
+
+module.exports = mutationResolvers;
