@@ -12,7 +12,7 @@ input UserInput {
   phone: String
   address: String
   salary: Int
-  isAdmin: Boolean
+  role: String
 }
 
 input UpdateUserInput {
@@ -23,7 +23,7 @@ input UpdateUserInput {
   address: String
   salary: Int
   advance: AdvanceInput
-  isAdmin: Boolean
+  role: String
 }
 
 input AdvanceInput {

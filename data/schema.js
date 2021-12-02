@@ -14,7 +14,7 @@ const schema =
   address: String
   salary: Int
   advance: Advance
-  isAdmin: Boolean
+  role: String
 }
 
 type Attendance {

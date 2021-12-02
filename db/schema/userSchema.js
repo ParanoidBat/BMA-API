@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     type: Number,
     min: 0,
   },
-  isAdmin: Boolean,
+  role: String,
 });
 
 const Users = mongoose.model("Users", userSchema);
