@@ -29,13 +29,11 @@ input UpdateUserInput {
 input AdvanceInput {
   amount: Int!
   userID: ID!
-  userName: String!
 }
 
 input UpdateAdvanceInput {
   amount: Int
   userID: ID
-  userName: String
 }
 `;
 

@@ -27,7 +27,6 @@ type Advance {
   id: ID
   amount: Int
   userID: ID
-  userName: String
 }
 ` +
   inputTypes +
