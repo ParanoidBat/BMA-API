@@ -26,6 +26,7 @@ type Attendance {
 type Advance {
   id: ID
   amount: Int
+  userName: String
 }
 ` +
   inputTypes +
