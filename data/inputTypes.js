@@ -33,7 +33,6 @@ input AdvanceInput {
 
 input UpdateAdvanceInput {
   amount: Int
-  userID: ID
 }
 `;
 

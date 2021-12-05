@@ -26,7 +26,6 @@ type Attendance {
 type Advance {
   id: ID
   amount: Int
-  userID: ID
 }
 ` +
   inputTypes +
