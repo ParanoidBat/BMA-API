@@ -5,7 +5,7 @@ const connectDB = require("../db/dbConnector.js");
 
 connectDB();
 
-const server = new ApolloServer({ typeDefs, resolvers, introspection: true });
+const server = new ApolloServer({ typeDefs, resolvers });
 
 server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
   console.log(`Server is running at ${url}`);
