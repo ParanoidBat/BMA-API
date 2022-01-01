@@ -4,11 +4,18 @@ const advanceSchema = new mongoose.Schema({
   amount: {
     type: Number,
     min: 0,
+    required: true,
   },
 
-  userID: mongoose.Schema.Types.ObjectId,
+  userID: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
 
-  userName: String,
+  userName: {
+    type: String,
+    required: true,
+  },
 });
 
 const Advances = mongoose.model("Advances", advanceSchema);

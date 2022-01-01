@@ -6,6 +6,9 @@ const attendanceSchema = new mongoose.Schema({
   timeOut: String,
 });
 
-const Attendances = mongoose.model("Attendances", attendanceSchema);
+const Attendance = mongoose.model("Attendances", attendanceSchema);
 
-module.exports = Attendances;
+module.exports = {
+  Attendance,
+  attendanceSchema,
+};
