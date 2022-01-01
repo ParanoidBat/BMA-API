@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
     type: Number,
     min: 0,
   },
+  hasAdvance: {
+    type: Boolean,
+    default: false,
+  },
   advance: {
     type: Object,
   },

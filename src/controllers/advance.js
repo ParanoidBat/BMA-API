@@ -1,9 +1,12 @@
 const Advance = require("../schemas/advanceSchema");
+const User = require("../schemas/userSchema");
 
 const createAdvance = async (req, res) => {
   try {
     const advance = new Advance(req.body);
     await advance.save();
+
+    await User.findByIdAndUpdate(req.body.userID, { hasAdvance: true });
 
     res.json({
       data: true,
@@ -38,7 +41,9 @@ const deleteAdvance = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await Advance.findByIdAndDelete(id);
+    await Advance.findByIdAndDelete(id, async (err, doc) => {
+      await User.findByIdAndUpdate(doc.userID, { hasAdvance: false });
+    });
 
     res.json({
       data: true,
