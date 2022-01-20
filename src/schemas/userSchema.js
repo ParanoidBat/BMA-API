@@ -27,7 +27,11 @@ const userSchema = new mongoose.Schema({
   advance: {
     type: Object,
   },
-  role: String,
+  role: {
+    type: String,
+    enum: ["Admin", "Moderator", "User"],
+    default: "User",
+  },
 });
 
 userSchema.post("findOne", async (doc) => {
