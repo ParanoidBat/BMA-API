@@ -69,6 +69,7 @@ const getUser = async (req, res) => {
 };
 
 const getUsersList = async (req, res) => {
+  console.log("heroku testing");
   try {
     const users = await User.find({}, "_id name salary hasAdvance").sort({
       name: 1,
