@@ -36,6 +36,30 @@ const updateUser = async (req, res) => {
   }
 };
 
+const updateUserWithAuthID = async (req, res) => {
+  try {
+    const user = await User.findOneAndUpdate(
+      { authID: req.params.authID },
+      req.body,
+      {
+        runValidators: true,
+      }
+    );
+
+    if (user == null) throw "User doesn't exist";
+
+    await user.save();
+
+    res.json({
+      data: true,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Error: Couldn't update user.",
+    });
+  }
+};
+
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -87,6 +111,7 @@ const getUsersList = async (req, res) => {
 module.exports = {
   createUser,
   updateUser,
+  updateUserWithAuthID,
   deleteUser,
   getUser,
   getUsersList,
