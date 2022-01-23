@@ -15,8 +15,13 @@ const createUser = async (req, res) => {
   }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   const { id } = req.params;
+
+  if (id.length <= 3) {
+    res.locals.authID = id;
+    return next("route");
+  }
 
   try {
     const user = await User.findByIdAndUpdate(id, req.body, {
@@ -54,6 +59,8 @@ const updateUserWithAuthID = async (req, res) => {
       data: true,
     });
   } catch (err) {
+    console.log(err);
+
     res.status(500).json({
       error: "Error: Couldn't update user.",
     });
