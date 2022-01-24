@@ -3,6 +3,6 @@ const express = require("express");
 
 const router = express.Router();
 
-router.route("/:id").post(createAttendance);
+router.route("/:authID").post(createAttendance);
 
 module.exports = router;

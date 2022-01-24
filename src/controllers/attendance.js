@@ -2,10 +2,10 @@ const Attendance = require("../schemas/attendanceSchema");
 const User = require("../schemas/userSchema");
 
 const createAttendance = async (req, res) => {
-  const { id } = req.params;
+  const { authID } = req.params;
 
   try {
-    const user = await User.findById(id);
+    const user = await User.findOne({ authID: authID });
 
     user.attendanceCount.push(req.body);
 
