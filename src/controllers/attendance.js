@@ -6,6 +6,9 @@ const createAttendance = async (req, res) => {
   try {
     const user = await User.findOne({ authID: req.body.authID });
     const attendance = new Attendance(req.body);
+    attendance.date = moment(attendance.date, "YYYY/MM/DD").format(
+      "YYYY/MM/DD"
+    );
     attendance.userName = user.name;
 
     await attendance.save();
