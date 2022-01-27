@@ -1,15 +1,14 @@
-const Attendance = require("../schemas/attendanceSchema");
+const { Attendance } = require("../schemas/attendanceSchema");
 const User = require("../schemas/userSchema");
+const moment = require("moment");
 
 const createAttendance = async (req, res) => {
-  const { authID } = req.params;
-
   try {
-    const user = await User.findOne({ authID: authID });
+    const user = await User.findOne({ authID: req.body.authID });
+    const attendance = new Attendance(req.body);
+    attendance.userName = user.name;
 
-    user.attendanceCount.push(req.body);
-
-    await user.save();
+    await attendance.save();
 
     res.json({
       data: true,
@@ -21,6 +20,36 @@ const createAttendance = async (req, res) => {
   }
 };
 
+const checkout = async (req, res) => {
+  // Doesn't matter if checked out on same day or not.
+  try {
+    const attendance = await Attendance.findOneAndUpdate(
+      {
+        authID: req.body.authID,
+        date: {
+          $eq: req.body.date,
+        },
+      },
+      {
+        timeOut: req.body.timeOut,
+      }
+    );
+
+    if (attendance != null) {
+      await attendance.save();
+    }
+
+    res.json({
+      data: true,
+    });
+  } catch (err) {
+    res.json({
+      error: "Couldn't checkout.",
+    });
+  }
+};
+
 module.exports = {
   createAttendance,
+  checkout,
 };

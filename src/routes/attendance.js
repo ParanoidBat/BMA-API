@@ -1,8 +1,9 @@
-const { createAttendance } = require("../controllers/attendance");
+const { createAttendance, checkout } = require("../controllers/attendance");
 const express = require("express");
 
 const router = express.Router();
 
-router.route("/:authID").post(createAttendance);
+router.route("/").post(createAttendance);
+router.route("/checkout/").post(checkout);
 
 module.exports = router;

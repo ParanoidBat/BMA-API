@@ -5,6 +5,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/user");
 const advanceRoutes = require("./routes/advance");
 const attendanceRoutes = require("./routes/attendance");
+const reportRoutes = require("./routes/report");
 
 const app = express();
 app.use(express.json());
@@ -26,6 +27,7 @@ db.once("open", () => console.log("DB Connected"));
 app.use("/user", userRoutes);
 app.use("/advance", advanceRoutes);
 app.use("/attendance", attendanceRoutes);
+app.use("/report", reportRoutes);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Listening on ${port}`));

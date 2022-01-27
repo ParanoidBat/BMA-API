@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { attendanceSchema } = require("./attendanceSchema");
 const Advance = require("./advanceSchema");
 
 const userSchema = new mongoose.Schema({
@@ -12,7 +11,8 @@ const userSchema = new mongoose.Schema({
     unique: true,
   },
   attendanceCount: {
-    type: [attendanceSchema],
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "Attendance",
   },
   phone: String,
   address: String,
