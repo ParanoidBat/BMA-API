@@ -1,9 +1,19 @@
 const User = require("../schemas/userSchema");
+const { Attendance } = require("../schemas/attendanceSchema");
+const moment = require("moment");
 
 const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
+    const attendance = new Attendance({
+      date: moment().format("YYYY/MM/DD"),
+      authID: user.authID,
+      timeIn: moment().format("h:mm:ss"),
+      userName: user.name,
+    });
+
     await user.save();
+    await attendance.save();
 
     res.json({
       data: true,
@@ -19,7 +29,6 @@ const updateUser = async (req, res, next) => {
   const { id } = req.params;
 
   if (id.length <= 3) {
-    res.locals.authID = id;
     return next("route");
   }
 
