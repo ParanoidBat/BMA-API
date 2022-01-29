@@ -1,19 +1,10 @@
 const User = require("../schemas/userSchema");
-const { Attendance } = require("../schemas/attendanceSchema");
-const moment = require("moment");
 
 const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
-    const attendance = new Attendance({
-      date: moment().format("YYYY/MM/DD"),
-      authID: user.authID,
-      timeIn: moment().format("h:mm:ss"),
-      userName: user.name,
-    });
 
     await user.save();
-    await attendance.save();
 
     res.json({
       data: true,
@@ -96,7 +87,7 @@ const getUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await User.findById(id).populate("attendanceCount");
+    const user = await User.findById(id);
 
     res.json({
       data: user,

@@ -10,10 +10,6 @@ const userSchema = new mongoose.Schema({
     type: Number,
     unique: true,
   },
-  attendanceCount: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "Attendance",
-  },
   phone: String,
   address: String,
   salary: {

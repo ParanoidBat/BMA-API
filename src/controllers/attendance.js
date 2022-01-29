@@ -1,4 +1,4 @@
-const { Attendance } = require("../schemas/attendanceSchema");
+const Attendance = require("../schemas/attendanceSchema");
 const User = require("../schemas/userSchema");
 const moment = require("moment");
 
@@ -6,10 +6,12 @@ const createAttendance = async (req, res) => {
   try {
     const user = await User.findOne({ authID: req.body.authID });
     const attendance = new Attendance(req.body);
+
     attendance.date = moment(attendance.date, "YYYY/MM/DD").format(
       "YYYY/MM/DD"
     );
     attendance.userName = user.name;
+    attendance.uniqueAttendanceString = `${user.authID}${attendance.date}`;
 
     await attendance.save();
 
@@ -30,7 +32,7 @@ const checkout = async (req, res) => {
       {
         authID: req.body.authID,
         date: {
-          $eq: req.body.date,
+          $eq: moment(req.body.date, "YYYY/MM/DD").format("YYYY/MM/DD"),
         },
       },
       {

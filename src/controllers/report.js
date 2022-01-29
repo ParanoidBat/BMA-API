@@ -1,4 +1,4 @@
-const { Attendance } = require("../schemas/attendanceSchema");
+const Attendance = require("../schemas/attendanceSchema");
 const moment = require("moment");
 
 const getTodayReport = async (req, res) => {

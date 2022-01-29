@@ -1,7 +1,11 @@
 const mongoose = require("mongoose");
-const Users = require("./userSchema");
 
 const attendanceSchema = new mongoose.Schema({
+  uniqueAttendanceString: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   date: {
     type: String,
     required: true,
@@ -18,27 +22,6 @@ const attendanceSchema = new mongoose.Schema({
   timeOut: String,
 });
 
-attendanceSchema.post("save", async (doc) => {
-  try {
-    await Users.findOneAndUpdate(
-      { authID: doc.authID },
-      {
-        $push: {
-          attendanceCount: doc._id,
-        },
-      },
-      function (error, success) {
-        if (error) throw error;
-      }
-    );
-  } catch (err) {
-    console.log(err);
-  }
-});
-
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
-module.exports = {
-  Attendance,
-  attendanceSchema,
-};
+module.exports = Attendance;
