@@ -6,6 +6,7 @@ const userRoutes = require("./routes/user");
 const advanceRoutes = require("./routes/advance");
 const attendanceRoutes = require("./routes/attendance");
 const reportRoutes = require("./routes/report");
+const organizationRoutes = require("./routes/organization");
 
 const app = express();
 app.use(express.json());
@@ -28,6 +29,7 @@ app.use("/user", userRoutes);
 app.use("/advance", advanceRoutes);
 app.use("/attendance", attendanceRoutes);
 app.use("/report", reportRoutes);
+app.use("/organization", organizationRoutes);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Listening on ${port}`));

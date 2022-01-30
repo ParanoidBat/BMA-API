@@ -1,16 +1,15 @@
-const { Attendance } = require("../schemas/attendanceSchema");
+const Attendance = require("../schemas/attendanceSchema");
 const moment = require("moment");
 const { remove } = require("lodash");
 const Organization = require("../schemas/organizationSchema");
 
 const getTodayReport = async (req, res) => {
   try {
-    // const attendances = await Attendance.find({
-    //   date: moment().format("YYYY/MM/DD"),
-    // });
     const today = moment().format("YYYY/MM/DD");
 
-    const organization = await Organization.findById(req.params.orgID);
+    const organization = await Organization.findById(
+      req.body.organizationID
+    ).populate("dailyAttendance");
 
     const removed = remove(organization.dailyAttendance, (attendance) => {
       return attendance.date != today;
@@ -37,6 +36,7 @@ const getWeeklyReport = async (req, res) => {
         $gte: startOfWeek,
         $lte: moment().format("YYYY/MM/DD"),
       },
+      organizationID: req.body.organizationID,
     });
 
     res.json({
@@ -59,6 +59,7 @@ const getMonthlyReport = async (req, res) => {
         $gte: startOfMonth,
         $lte: moment().format("YYYY/MM/DD"),
       },
+      organizationID: req.body.organizationID,
     });
 
     res.json({
@@ -67,7 +68,7 @@ const getMonthlyReport = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.json({
-      error: "Error: Couldn't generate weekly report.",
+      error: "Error: Couldn't generate monthly report.",
     });
   }
 };
@@ -85,6 +86,7 @@ const getThreeMonthsReport = async (req, res) => {
         $gte: last3Months,
         $lte: moment().format("YYYY/MM/DD"),
       },
+      organizationID: req.body.organizationID,
     });
 
     res.json({
@@ -93,7 +95,7 @@ const getThreeMonthsReport = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.json({
-      error: "Error: Couldn't generate weekly report.",
+      error: "Error: Couldn't generate 3 months report.",
     });
   }
 };
@@ -111,6 +113,7 @@ const getSixMonthsReport = async (req, res) => {
         $gte: last6Months,
         $lte: moment().format("YYYY/MM/DD"),
       },
+      organizationID: req.body.organizationID,
     });
 
     res.json({
@@ -119,7 +122,7 @@ const getSixMonthsReport = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.json({
-      error: "Error: Couldn't generate weekly report.",
+      error: "Error: Couldn't generate 6 months report.",
     });
   }
 };
@@ -130,6 +133,7 @@ const getReportOnDate = async (req, res) => {
 
     const attendances = await Attendance.find({
       date: onDate,
+      organizationID: req.body.organizationID,
     });
 
     res.json({
@@ -138,7 +142,7 @@ const getReportOnDate = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.json({
-      error: "Error: Couldn't generate weekly report.",
+      error: `Error: Couldn't generate report on ${onDate}.`,
     });
   }
 };

@@ -1,12 +1,17 @@
-const Advance = require("../schemas/advanceSchema");
 const User = require("../schemas/userSchema");
 
 const createAdvance = async (req, res) => {
   try {
-    const advance = new Advance(req.body);
-    await advance.save();
-
-    await User.findByIdAndUpdate(req.body.userID, { hasAdvance: true });
+    User.findByIdAndUpdate(
+      req.params.id,
+      {
+        hasAdvance: true,
+        advance: req.body.advance,
+      },
+      (err) => {
+        if (err) throw err;
+      }
+    );
 
     res.json({
       data: true,
@@ -19,16 +24,22 @@ const createAdvance = async (req, res) => {
 };
 
 const updateAdvance = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const advance = await Advance.findByIdAndUpdate(id, req.body, {
-      runValidators: true,
-      new: true,
-    });
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        advance: req.body.advance,
+      },
+      {
+        runValidators: true,
+        new: true,
+      }
+    );
+
+    await user.save();
 
     res.json({
-      data: advance,
+      data: user.advance,
     });
   } catch (err) {
     res.status(500).json({
@@ -38,11 +49,10 @@ const updateAdvance = async (req, res) => {
 };
 
 const deleteAdvance = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    await Advance.findByIdAndDelete(id, async (err, doc) => {
-      await User.findByIdAndUpdate(doc.userID, { hasAdvance: false });
+    await User.findByIdAndUpdate(req.params.id, {
+      hasAdvance: false,
+      advance: null,
     });
 
     res.json({
@@ -55,23 +65,8 @@ const deleteAdvance = async (req, res) => {
   }
 };
 
-const getAdvancesList = async (req, res) => {
-  try {
-    const advances = await Advance.find();
-
-    res.json({
-      data: advances,
-    });
-  } catch (err) {
-    res.status(500).json({
-      error: "Error: Couldn't get advances list.",
-    });
-  }
-};
-
 module.exports = {
   createAdvance,
   updateAdvance,
   deleteAdvance,
-  getAdvancesList,
 };

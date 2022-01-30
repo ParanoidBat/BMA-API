@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { attendanceSchema } = require("./attendanceSchema");
 
 const organizationSchema = new mongoose.Schema({
   name: {
@@ -18,7 +17,10 @@ const organizationSchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     ref: "User",
   },
-  dailyAttendance: [attendanceSchema],
+  dailyAttendance: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "Attendance",
+  },
 });
 
 const Organization = mongoose.model("Organization", organizationSchema);

@@ -1,10 +1,23 @@
 const User = require("../schemas/userSchema");
+const Organization = require("../schemas/organizationSchema");
 
 const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
 
     await user.save();
+
+    Organization.findByIdAndUpdate(
+      user.organizationID,
+      {
+        $push: {
+          users: user._id,
+        },
+      },
+      (err) => {
+        if (err) throw err;
+      }
+    );
 
     res.json({
       data: true,
@@ -16,12 +29,8 @@ const createUser = async (req, res) => {
   }
 };
 
-const updateUser = async (req, res, next) => {
+const updateUser = async (req, res) => {
   const { id } = req.params;
-
-  if (id.length <= 3) {
-    return next("route");
-  }
 
   try {
     const user = await User.findByIdAndUpdate(id, req.body, {
@@ -42,9 +51,10 @@ const updateUser = async (req, res, next) => {
 };
 
 const updateUserWithAuthID = async (req, res) => {
+  const { authID, organizationID } = req.params;
   try {
     const user = await User.findOneAndUpdate(
-      { authID: req.params.authID },
+      { authID: authID, organizationID: organizationID },
       req.body,
       {
         runValidators: true,
@@ -101,7 +111,10 @@ const getUser = async (req, res) => {
 
 const getUsersList = async (req, res) => {
   try {
-    const users = await User.find({}, "_id name salary hasAdvance").sort({
+    const users = await User.find(
+      { organizationID: req.body.organizationID },
+      "_id name salary hasAdvance"
+    ).sort({
       name: 1,
     });
 

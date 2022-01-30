@@ -1,9 +1,9 @@
-const { Attendance } = require("../schemas/attendanceSchema");
+const Attendance = require("../schemas/attendanceSchema");
 const User = require("../schemas/userSchema");
 const Organization = require("../schemas/organizationSchema");
 const moment = require("moment");
 
-const createAttendance = async (req, res) => {
+const checkin = async (req, res) => {
   try {
     const user = await User.findOne({ authID: req.body.authID });
     const attendance = new Attendance(req.body);
@@ -16,7 +16,7 @@ const createAttendance = async (req, res) => {
     attendance.uniqueAttendanceString = `${user._id}${attendance.date}`;
 
     await attendance.save();
-    await Organization.findByIdAndUpdate(
+    Organization.findByIdAndUpdate(
       attendance.organizationID,
       {
         $push: {
@@ -47,6 +47,7 @@ const checkout = async (req, res) => {
         date: {
           $eq: moment(req.body.date, "YYYY/MM/DD").format("YYYY/MM/DD"),
         },
+        organizationID: req.body.organizationID,
       },
       {
         timeOut: req.body.timeOut,
@@ -68,6 +69,6 @@ const checkout = async (req, res) => {
 };
 
 module.exports = {
-  createAttendance,
+  checkin,
   checkout,
 };

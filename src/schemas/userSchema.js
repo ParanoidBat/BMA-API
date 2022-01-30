@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const Advance = require("./advanceSchema");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -8,11 +7,13 @@ const userSchema = new mongoose.Schema({
   },
   authID: {
     type: Number,
+    required: true,
     unique: true,
   },
-  organization: {
+  organizationID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Organization",
+    required: true,
   },
   phone: String,
   address: String,
@@ -25,39 +26,14 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   advance: {
-    amount: {
-      type: Number,
-      min: 0,
-      required: true,
-    },
-
-    userName: {
-      type: String,
-      required: true,
-    },
+    type: Number,
+    min: 0,
   },
   role: {
     type: String,
     enum: ["Admin", "Worker", "Manager"],
     default: "Worker",
   },
-});
-
-userSchema.post("findOne", async (doc) => {
-  if (doc) {
-    const userAdvance = await Advance.findOne({ userID: doc._id });
-    doc.advance = userAdvance;
-  }
-});
-
-userSchema.post("findOneAndDelete", async (doc) => {
-  if (doc) {
-    try {
-      await Advance.findOneAndDelete({ userID: doc._id });
-    } catch (err) {
-      console.log("Couldn't delete corresponding advance");
-    }
-  }
 });
 
 const User = mongoose.model("Users", userSchema);

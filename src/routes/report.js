@@ -2,6 +2,7 @@ const {
   getTodayReport,
   getWeeklyReport,
   getMonthlyReport,
+  getThreeMonthsReport,
   getSixMonthsReport,
   getReportOnDate,
 } = require("../controllers/report");
@@ -10,10 +11,11 @@ const express = require("express");
 
 const router = express.Router();
 
-router.route("/today").get(getTodayReport);
-router.route("/weekly").get(getWeeklyReport);
-router.route("/monthly").get(getMonthlyReport);
-router.route("/six").get(getSixMonthsReport);
-router.route("/on").get(getReportOnDate);
+router.route("/today").post(getTodayReport);
+router.route("/weekly").post(getWeeklyReport);
+router.route("/monthly").post(getMonthlyReport);
+router.route("/three").post(getThreeMonthsReport);
+router.route("/six").post(getSixMonthsReport);
+router.route("/on").post(getReportOnDate);
 
 module.exports = router;
