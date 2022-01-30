@@ -7,11 +7,6 @@ const advanceSchema = new mongoose.Schema({
     required: true,
   },
 
-  userID: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-  },
-
   userName: {
     type: String,
     required: true,

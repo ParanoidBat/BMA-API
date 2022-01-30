@@ -1,5 +1,6 @@
-const Attendance = require("../schemas/attendanceSchema");
+const { Attendance } = require("../schemas/attendanceSchema");
 const User = require("../schemas/userSchema");
+const Organization = require("../schemas/organizationSchema");
 const moment = require("moment");
 
 const createAttendance = async (req, res) => {
@@ -11,9 +12,21 @@ const createAttendance = async (req, res) => {
       "YYYY/MM/DD"
     );
     attendance.userName = user.name;
-    attendance.uniqueAttendanceString = `${user.authID}${attendance.date}`;
+    attendance.userID = user._id;
+    attendance.uniqueAttendanceString = `${user._id}${attendance.date}`;
 
     await attendance.save();
+    await Organization.findByIdAndUpdate(
+      attendance.organizationID,
+      {
+        $push: {
+          dailyAttendance: attendance,
+        },
+      },
+      (err) => {
+        if (err) throw err;
+      }
+    );
 
     res.json({
       data: true,

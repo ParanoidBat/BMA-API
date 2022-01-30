@@ -1,17 +1,27 @@
-const Attendance = require("../schemas/attendanceSchema");
+const { Attendance } = require("../schemas/attendanceSchema");
 const moment = require("moment");
+const { remove } = require("lodash");
+const Organization = require("../schemas/organizationSchema");
 
 const getTodayReport = async (req, res) => {
   try {
-    const attendances = await Attendance.find({
-      date: moment().format("YYYY/MM/DD"),
+    // const attendances = await Attendance.find({
+    //   date: moment().format("YYYY/MM/DD"),
+    // });
+    const today = moment().format("YYYY/MM/DD");
+
+    const organization = await Organization.findById(req.params.orgID);
+
+    const removed = remove(organization.dailyAttendance, (attendance) => {
+      return attendance.date != today;
     });
 
+    if (removed.length > 0) await organization.save();
+
     res.json({
-      data: attendances,
+      data: organization.dailyAttendance,
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({
       error: "Error: Couldn't generate daily report.",
     });

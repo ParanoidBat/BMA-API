@@ -18,10 +18,18 @@ const attendanceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  userID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  organizationID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Organization",
+  },
   timeIn: String,
   timeOut: String,
 });
 
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
-module.exports = Attendance;
+module.exports = { Attendance, attendanceSchema };

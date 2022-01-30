@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
     type: Number,
     unique: true,
   },
+  organization: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Organization",
+  },
   phone: String,
   address: String,
   salary: {
@@ -21,7 +25,16 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   advance: {
-    type: Object,
+    amount: {
+      type: Number,
+      min: 0,
+      required: true,
+    },
+
+    userName: {
+      type: String,
+      required: true,
+    },
   },
   role: {
     type: String,
@@ -47,6 +60,6 @@ userSchema.post("findOneAndDelete", async (doc) => {
   }
 });
 
-const Users = mongoose.model("Users", userSchema);
+const User = mongoose.model("Users", userSchema);
 
-module.exports = Users;
+module.exports = User;
