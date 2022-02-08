@@ -39,7 +39,7 @@ const updateAdvance = async (req, res) => {
     await user.save();
 
     res.json({
-      data: user.advance,
+      data: true,
     });
   } catch (err) {
     res.status(500).json({
