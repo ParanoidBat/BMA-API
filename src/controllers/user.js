@@ -111,10 +111,7 @@ const getUser = async (req, res) => {
 
 const getUsersList = async (req, res) => {
   try {
-    const users = await User.find(
-      { organizationID: req.body.organizationID },
-      "_id name salary hasAdvance"
-    ).sort({
+    const users = await User.find({}, "_id name organizationID").sort({
       name: 1,
     });
 

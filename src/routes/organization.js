@@ -2,6 +2,7 @@ const {
   createOrganization,
   getOrganization,
   getOrganizationsList,
+  getOrganizationUsersList,
   updateOrganization,
   deleteOrganization,
 } = require("../controllers/organization");
@@ -16,5 +17,6 @@ router
   .get(getOrganization)
   .put(updateOrganization)
   .delete(deleteOrganization);
+router.route("/:id/users").get(getOrganizationUsersList);
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const Organization = require("../schemas/organizationSchema");
+const User = require("../schemas/userSchema");
 
 const createOrganization = async (req, res) => {
   try {
@@ -79,9 +80,29 @@ const updateOrganization = async (req, res) => {
   }
 };
 
+const getOrganizationUsersList = async (req, res) => {
+  try {
+    const users = await User.find(
+      { organizationID: req.params.id },
+      "_id name salary hasAdvance"
+    ).sort({
+      name: 1,
+    });
+
+    res.json({
+      data: users,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Error: Couldn't get users list.",
+    });
+  }
+};
+
 module.exports = {
   createOrganization,
   getOrganizationsList,
+  getOrganizationUsersList,
   getOrganization,
   updateOrganization,
   deleteOrganization,
