@@ -5,7 +5,10 @@ const moment = require("moment");
 
 const checkin = async (req, res) => {
   try {
-    const user = await User.findOne({ authID: req.body.authID });
+    const user = await User.findOne({
+      authID: req.body.authID,
+      organizationID: req.body.organizationID,
+    });
     const attendance = new Attendance(req.body);
 
     attendance.date = moment(attendance.date, "YYYY/MM/DD").format(
