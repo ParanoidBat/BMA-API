@@ -1,11 +1,19 @@
 const User = require("../schemas/userSchema");
 const Organization = require("../schemas/organizationSchema");
+const Credentials = require("../schemas/credentialsSchema");
+const bcrypt = require("bcryptjs");
 
 const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
+    const credentials = new Credentials(req.body);
+
+    credentials.password = await bcrypt.hash(credentials.password, 10);
 
     await user.save();
+
+    credentials.user = user;
+    await credentials.save();
 
     Organization.findByIdAndUpdate(
       user.organizationID,
@@ -23,6 +31,7 @@ const createUser = async (req, res) => {
       data: true,
     });
   } catch (err) {
+    console.log("err", err);
     res.status(500).json({
       error: "Error: Couldn't create user.",
     });

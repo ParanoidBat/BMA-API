@@ -5,10 +5,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // token: String,
   authID: {
     type: Number,
     required: true,
-    unique: true,
   },
   organizationID: {
     type: mongoose.Schema.Types.ObjectId,
@@ -36,6 +36,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-const User = mongoose.model("Users", userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

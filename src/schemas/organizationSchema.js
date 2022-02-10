@@ -13,6 +13,11 @@ const organizationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  email: {
+    type: String,
+    match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    unique: true,
+  },
   users: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "User",
