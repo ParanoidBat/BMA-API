@@ -6,14 +6,15 @@ const bcrypt = require("bcryptjs");
 const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
-    const credentials = new Credentials(req.body);
-
-    credentials.password = await bcrypt.hash(credentials.password, 10);
 
     await user.save();
 
-    credentials.user = user;
-    await credentials.save();
+    if (req.body.email) {
+      const credentials = new Credentials(req.body);
+      credentials.user = user;
+      credentials.password = await bcrypt.hash(credentials.password, 10);
+      await credentials.save();
+    }
 
     Organization.findByIdAndUpdate(
       user.organizationID,
