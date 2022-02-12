@@ -32,7 +32,6 @@ const createUser = async (req, res) => {
       data: true,
     });
   } catch (err) {
-    console.log("err", err);
     res.status(500).json({
       error: "Error: Couldn't create user.",
     });

@@ -25,11 +25,13 @@ const login = async (req, res) => {
           id: credentials.user._id,
         },
       });
+    } else {
+      res.json({
+        error: "Credentials don't match.",
+      });
     }
-
-    throw "Credentials don't match";
   } catch (err) {
-    res.status(500).json({
+    res.json({
       error: "Credentials don't match",
     });
   }
