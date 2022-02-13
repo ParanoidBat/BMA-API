@@ -23,6 +23,7 @@ const login = async (req, res) => {
         data: {
           token,
           id: credentials.user._id,
+          orgID: credentials.user.organizationID,
         },
       });
     } else {
