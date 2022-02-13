@@ -11,11 +11,11 @@ const express = require("express");
 
 const router = express.Router();
 
-router.route("/today").post(getTodayReport);
-router.route("/weekly").post(getWeeklyReport);
-router.route("/monthly").post(getMonthlyReport);
-router.route("/three").post(getThreeMonthsReport);
-router.route("/six").post(getSixMonthsReport);
-router.route("/on").post(getReportOnDate);
+router.route("/today/:id").get(getTodayReport);
+router.route("/weekly/:id").get(getWeeklyReport);
+router.route("/monthly/:id").get(getMonthlyReport);
+router.route("/three/:id").get(getThreeMonthsReport);
+router.route("/six/:id").get(getSixMonthsReport);
+router.route("/on/:id").get(getReportOnDate);
 
 module.exports = router;
