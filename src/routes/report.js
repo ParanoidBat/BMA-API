@@ -4,7 +4,8 @@ const {
   getMonthlyReport,
   getThreeMonthsReport,
   getSixMonthsReport,
-  getReportOnDate,
+  getUserReport,
+  getFilteredUserReport,
 } = require("../controllers/report");
 
 const express = require("express");
@@ -16,6 +17,9 @@ router.route("/weekly/:id").get(getWeeklyReport);
 router.route("/monthly/:id").get(getMonthlyReport);
 router.route("/three/:id").get(getThreeMonthsReport);
 router.route("/six/:id").get(getSixMonthsReport);
-router.route("/on/:id").get(getReportOnDate);
+router
+  .route("/user/:orgID/:userID")
+  .get(getUserReport)
+  .post(getFilteredUserReport);
 
 module.exports = router;

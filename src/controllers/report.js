@@ -31,13 +31,16 @@ const getWeeklyReport = async (req, res) => {
   try {
     const startOfWeek = moment().clone().startOf("week").format("YYYY/MM/DD");
 
-    const attendances = await Attendance.find({
-      date: {
-        $gte: startOfWeek,
-        $lte: moment().format("YYYY/MM/DD"),
+    const attendances = await Attendance.find(
+      {
+        date: {
+          $gte: startOfWeek,
+          $lte: moment().format("YYYY/MM/DD"),
+        },
+        organizationID: req.params.id,
       },
-      organizationID: req.params.id,
-    });
+      "date timeIn timeOut userName"
+    );
 
     res.json({
       data: attendances,
@@ -53,13 +56,16 @@ const getMonthlyReport = async (req, res) => {
   try {
     const startOfMonth = moment().clone().startOf("month").format("YYYY/MM/DD");
 
-    const attendances = await Attendance.find({
-      date: {
-        $gte: startOfMonth,
-        $lte: moment().format("YYYY/MM/DD"),
+    const attendances = await Attendance.find(
+      {
+        date: {
+          $gte: startOfMonth,
+          $lte: moment().format("YYYY/MM/DD"),
+        },
+        organizationID: req.params.id,
       },
-      organizationID: req.params.id,
-    });
+      "date timeIn timeOut userName"
+    );
 
     res.json({
       data: attendances,
@@ -79,13 +85,16 @@ const getThreeMonthsReport = async (req, res) => {
       .startOf("month")
       .format("YYYY/MM/DD");
 
-    const attendances = await Attendance.find({
-      date: {
-        $gte: last3Months,
-        $lte: moment().format("YYYY/MM/DD"),
+    const attendances = await Attendance.find(
+      {
+        date: {
+          $gte: last3Months,
+          $lte: moment().format("YYYY/MM/DD"),
+        },
+        organizationID: req.params.id,
       },
-      organizationID: req.params.id,
-    });
+      "date timeIn timeOut userName"
+    );
 
     res.json({
       data: attendances,
@@ -105,13 +114,16 @@ const getSixMonthsReport = async (req, res) => {
       .startOf("month")
       .format("YYYY/MM/DD");
 
-    const attendances = await Attendance.find({
-      date: {
-        $gte: last6Months,
-        $lte: moment().format("YYYY/MM/DD"),
+    const attendances = await Attendance.find(
+      {
+        date: {
+          $gte: last6Months,
+          $lte: moment().format("YYYY/MM/DD"),
+        },
+        organizationID: req.params.id,
       },
-      organizationID: req.params.id,
-    });
+      "date timeIn timeOut userName"
+    );
 
     res.json({
       data: attendances,
@@ -123,21 +135,53 @@ const getSixMonthsReport = async (req, res) => {
   }
 };
 
-const getReportOnDate = async (req, res) => {
+const getUserReport = async (req, res) => {
   try {
-    const onDate = moment(req.body.date, "YYYY/MM/DD").format("YYYY/MM/DD");
-
-    const attendances = await Attendance.find({
-      date: onDate,
-      organizationID: req.params.id,
-    });
+    const attendances = await Attendance.find(
+      {
+        userID: req.params.userID,
+        organizationID: req.params.orgID,
+      },
+      "date timeIn timeOut"
+    ).sort({ _id: -1 });
 
     res.json({
       data: attendances,
     });
   } catch (err) {
     res.json({
-      error: `Error: Couldn't generate report on ${onDate}.`,
+      error: `Error: Couldn't generate report for user.`,
+    });
+  }
+};
+
+const getFilteredUserReport = async (req, res) => {
+  try {
+    var { from, to } = req.body;
+
+    from = moment(from, "YYYY/MM/DD").format("YYYY/MM/DD");
+    to = moment(to, "YYYY/MM/DD").format("YYYY/MM/DD");
+
+    if (moment(from).isAfter(to)) [from, to] = [to, from];
+
+    const attendances = await Attendance.find(
+      {
+        userID: req.params.userID,
+        organizationID: req.params.orgID,
+        date: {
+          $lte: to,
+          $gte: from,
+        },
+      },
+      "date timeIn timeOut"
+    ).sort({ _id: -1 });
+
+    res.json({
+      data: attendances,
+    });
+  } catch (err) {
+    res.json({
+      error: `Error: Couldn't generate report for user.`,
     });
   }
 };
@@ -148,5 +192,6 @@ module.exports = {
   getMonthlyReport,
   getThreeMonthsReport,
   getSixMonthsReport,
-  getReportOnDate,
+  getUserReport,
+  getFilteredUserReport,
 };
