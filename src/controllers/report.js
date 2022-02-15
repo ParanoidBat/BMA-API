@@ -186,7 +186,7 @@ const getFilteredUserReport = async (req, res) => {
   }
 };
 
-const getCustomReport = () => {
+const getCustomReport = async () => {
   try {
     var { from, to } = req.body;
 
