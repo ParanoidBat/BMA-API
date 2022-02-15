@@ -186,6 +186,36 @@ const getFilteredUserReport = async (req, res) => {
   }
 };
 
+const getCustomReport = () => {
+  try {
+    var { from, to } = req.body;
+
+    from = moment(from, "YYYY/MM/DD").format("YYYY/MM/DD");
+    to = moment(to, "YYYY/MM/DD").format("YYYY/MM/DD");
+
+    if (moment(from).isAfter(to)) [from, to] = [to, from];
+
+    const attendances = await Attendance.find(
+      {
+        organizationID: req.params.id,
+        date: {
+          $lte: to,
+          $gte: from,
+        },
+      },
+      "userName date timeIn timeOut"
+    ).sort({ _id: -1 });
+
+    res.json({
+      data: attendances,
+    });
+  } catch (err) {
+    res.json({
+      error: `Error: Couldn't generate report.`,
+    });
+  }
+};
+
 module.exports = {
   getTodayReport,
   getWeeklyReport,
@@ -194,4 +224,5 @@ module.exports = {
   getSixMonthsReport,
   getUserReport,
   getFilteredUserReport,
+  getCustomReport,
 };
