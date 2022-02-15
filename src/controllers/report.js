@@ -5,7 +5,7 @@ const Organization = require("../schemas/organizationSchema");
 
 const getTodayReport = async (req, res) => {
   try {
-    const today = moment().format("YYYY/MM/DD");
+    const today = moment().format("YYYY-MM-DD");
 
     const organization = await Organization.findById(req.params.id).populate(
       "dailyAttendance"
@@ -29,13 +29,13 @@ const getTodayReport = async (req, res) => {
 
 const getWeeklyReport = async (req, res) => {
   try {
-    const startOfWeek = moment().clone().startOf("week").format("YYYY/MM/DD");
+    const startOfWeek = moment().clone().startOf("week").format("YYYY-MM-DD");
 
     const attendances = await Attendance.find(
       {
         date: {
           $gte: startOfWeek,
-          $lte: moment().format("YYYY/MM/DD"),
+          $lte: moment().format("YYYY-MM-DD"),
         },
         organizationID: req.params.id,
       },
@@ -54,13 +54,13 @@ const getWeeklyReport = async (req, res) => {
 
 const getMonthlyReport = async (req, res) => {
   try {
-    const startOfMonth = moment().clone().startOf("month").format("YYYY/MM/DD");
+    const startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
 
     const attendances = await Attendance.find(
       {
         date: {
           $gte: startOfMonth,
-          $lte: moment().format("YYYY/MM/DD"),
+          $lte: moment().format("YYYY-MM-DD"),
         },
         organizationID: req.params.id,
       },
@@ -83,13 +83,13 @@ const getThreeMonthsReport = async (req, res) => {
       .clone()
       .subtract(3, "months")
       .startOf("month")
-      .format("YYYY/MM/DD");
+      .format("YYYY-MM-DD");
 
     const attendances = await Attendance.find(
       {
         date: {
           $gte: last3Months,
-          $lte: moment().format("YYYY/MM/DD"),
+          $lte: moment().format("YYYY-MM-DD"),
         },
         organizationID: req.params.id,
       },
@@ -112,13 +112,13 @@ const getSixMonthsReport = async (req, res) => {
       .clone()
       .subtract(6, "months")
       .startOf("month")
-      .format("YYYY/MM/DD");
+      .format("YYYY-MM-DD");
 
     const attendances = await Attendance.find(
       {
         date: {
           $gte: last6Months,
-          $lte: moment().format("YYYY/MM/DD"),
+          $lte: moment().format("YYYY-MM-DD"),
         },
         organizationID: req.params.id,
       },
@@ -159,8 +159,8 @@ const getFilteredUserReport = async (req, res) => {
   try {
     var { from, to } = req.body;
 
-    from = moment(from, "YYYY/MM/DD").format("YYYY/MM/DD");
-    to = moment(to, "YYYY/MM/DD").format("YYYY/MM/DD");
+    from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
+    to = moment(to, "YYYY-MM-DD").format("YYYY-MM-DD");
 
     if (moment(from).isAfter(to)) [from, to] = [to, from];
 
@@ -186,12 +186,12 @@ const getFilteredUserReport = async (req, res) => {
   }
 };
 
-const getCustomReport = async () => {
+const getCustomReport = async (req, res) => {
   try {
     var { from, to } = req.body;
 
-    from = moment(from, "YYYY/MM/DD").format("YYYY/MM/DD");
-    to = moment(to, "YYYY/MM/DD").format("YYYY/MM/DD");
+    from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
+    to = moment(to, "YYYY-MM-DD").format("YYYY-MM-DD");
 
     if (moment(from).isAfter(to)) [from, to] = [to, from];
 

@@ -11,8 +11,8 @@ const checkin = async (req, res) => {
     });
     const attendance = new Attendance(req.body);
 
-    attendance.date = moment(attendance.date, "YYYY/MM/DD").format(
-      "YYYY/MM/DD"
+    attendance.date = moment(attendance.date, "YYYY-MM-DD").format(
+      "YYYY-MM-DD"
     );
     attendance.userName = user.name;
     attendance.userID = user._id;
@@ -48,7 +48,7 @@ const checkout = async (req, res) => {
       {
         authID: req.body.authID,
         date: {
-          $eq: moment(req.body.date, "YYYY/MM/DD").format("YYYY/MM/DD"),
+          $eq: moment(req.body.date, "YYYY-MM-DD").format("YYYY-MM-DD"),
         },
         organizationID: req.body.organizationID,
       },
