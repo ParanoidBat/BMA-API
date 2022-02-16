@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const userRoutes = require("./routes/user");
-const advanceRoutes = require("./routes/advance");
 const attendanceRoutes = require("./routes/attendance");
 const reportRoutes = require("./routes/report");
 const organizationRoutes = require("./routes/organization");
@@ -30,7 +29,6 @@ db.on("error", console.error.bind(console, "Connection Error"));
 db.once("open", () => console.log("DB Connected"));
 
 app.use("/user", userRoutes);
-app.use("/advance", advanceRoutes);
 app.use("/attendance", attendanceRoutes);
 app.use("/report", reportRoutes);
 app.use("/organization", organizationRoutes);

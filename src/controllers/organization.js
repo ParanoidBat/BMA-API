@@ -84,7 +84,7 @@ const getOrganizationUsersList = async (req, res) => {
   try {
     const users = await User.find(
       { organizationID: req.params.id },
-      "_id name salary hasAdvance"
+      "_id name salary advance"
     ).sort({
       name: 1,
     });

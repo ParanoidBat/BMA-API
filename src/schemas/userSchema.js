@@ -5,7 +5,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // token: String,
   authID: {
     type: Number,
     required: true,
@@ -21,13 +20,10 @@ const userSchema = new mongoose.Schema({
     type: Number,
     min: 0,
   },
-  hasAdvance: {
-    type: Boolean,
-    default: false,
-  },
   advance: {
     type: Number,
     min: 0,
+    default: 0,
   },
   role: {
     type: String,
