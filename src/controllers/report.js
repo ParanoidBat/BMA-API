@@ -17,8 +17,12 @@ const getTodayReport = async (req, res) => {
 
     if (removed.length > 0) await organization.save();
 
+    const percentageAttendance =
+      (organization.dailyAttendance.length / organization.users.length) * 100;
+
     res.json({
       data: organization.dailyAttendance,
+      percentageAttendance,
     });
   } catch (err) {
     res.status(500).json({
@@ -30,20 +34,28 @@ const getTodayReport = async (req, res) => {
 const getWeeklyReport = async (req, res) => {
   try {
     const startOfWeek = moment().clone().startOf("week").format("YYYY-MM-DD");
+    const today = moment().format("YYYY-MM-DD");
 
     const attendances = await Attendance.find(
       {
         date: {
-          $gte: startOfWeek,
-          $lte: moment().format("YYYY-MM-DD"),
+          $gt: startOfWeek,
+          $lte: today,
         },
         organizationID: req.params.id,
       },
       "date timeIn timeOut userName"
+    ).populate("organizationID", "users");
+
+    const diff = moment(today).diff(startOfWeek, "days") + 1;
+    const percentageAttendance = Math.floor(
+      (attendances.length * 100) /
+        (attendances[0].organizationID.users.length * diff)
     );
 
     res.json({
       data: attendances,
+      percentageAttendance,
     });
   } catch (err) {
     res.json({
@@ -54,21 +66,36 @@ const getWeeklyReport = async (req, res) => {
 
 const getMonthlyReport = async (req, res) => {
   try {
-    const startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
+    var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
+    var today = moment().format("YYYY-MM-DD");
 
     const attendances = await Attendance.find(
       {
         date: {
           $gte: startOfMonth,
-          $lte: moment().format("YYYY-MM-DD"),
+          $lte: today,
         },
         organizationID: req.params.id,
       },
       "date timeIn timeOut userName"
+    ).populate("organizationID", "users");
+
+    const diff = moment(today).diff(startOfMonth, "days") + 1;
+
+    today = moment().format("YYYY-MM-ddd");
+    startOfMonth = moment(startOfMonth, "YYYY-MM-DD").format("YYYY-MM-ddd");
+
+    var workDays = diff - Math.floor(diff / 7);
+    if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
+
+    const percentageAttendance = Math.floor(
+      (attendances.length * 100) /
+        (workDays * attendances[0].organizationID.users.length)
     );
 
     res.json({
       data: attendances,
+      percentageAttendance,
     });
   } catch (err) {
     res.json({
@@ -79,25 +106,41 @@ const getMonthlyReport = async (req, res) => {
 
 const getThreeMonthsReport = async (req, res) => {
   try {
-    const last3Months = moment()
+    var last3Months = moment()
       .clone()
       .subtract(3, "months")
       .startOf("month")
       .format("YYYY-MM-DD");
 
+    var today = moment().format("YYYY-MM-DD");
+
     const attendances = await Attendance.find(
       {
         date: {
           $gte: last3Months,
-          $lte: moment().format("YYYY-MM-DD"),
+          $lte: today,
         },
         organizationID: req.params.id,
       },
       "date timeIn timeOut userName"
+    ).populate("organizationID", "users");
+
+    const diff = moment(today).diff(last3Months, "days") + 1;
+
+    today = moment().format("YYYY-MM-ddd");
+    last3Months = moment(last3Months, "YYYY-MM-DD").format("YYYY-MM-ddd");
+
+    var workDays = diff - Math.floor(diff / 7);
+    if (today.includes("Sun") || last3Months.includes("Sun")) workDays -= 1;
+
+    const percentageAttendance = Math.floor(
+      (attendances.length * 100) /
+        (workDays * attendances[0].organizationID.users.length)
     );
 
     res.json({
       data: attendances,
+      percentageAttendance,
     });
   } catch (err) {
     res.json({
@@ -108,25 +151,41 @@ const getThreeMonthsReport = async (req, res) => {
 
 const getSixMonthsReport = async (req, res) => {
   try {
-    const last6Months = moment()
+    var last6Months = moment()
       .clone()
       .subtract(6, "months")
       .startOf("month")
       .format("YYYY-MM-DD");
 
+    var today = moment().format("YYYY-MM-DD");
+
     const attendances = await Attendance.find(
       {
         date: {
           $gte: last6Months,
-          $lte: moment().format("YYYY-MM-DD"),
+          $lte: today,
         },
         organizationID: req.params.id,
       },
       "date timeIn timeOut userName"
+    ).populate("organizationID", "users");
+
+    today = moment().format("YYYY-MM-ddd");
+    last6Months = moment(last6Months, "YYYY-MM-DD").format("YYYY-MM-ddd");
+
+    const diff = moment(today).diff(last6Months, "days") + 1;
+    var workDays = diff - Math.floor(diff / 7);
+
+    if (today.includes("Sun") || last6Months.includes("Sun")) workDays -= 1;
+
+    const percentageAttendance = Math.floor(
+      (attendances * 100) /
+        (workDays * attendances[0].organizationID.users.length)
     );
 
     res.json({
       data: attendances,
+      percentageAttendance,
     });
   } catch (err) {
     res.json({
@@ -137,16 +196,36 @@ const getSixMonthsReport = async (req, res) => {
 
 const getUserReport = async (req, res) => {
   try {
+    var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
+    var today = moment().format("YYYY-MM-DD");
+
     const attendances = await Attendance.find(
       {
         userID: req.params.userID,
         organizationID: req.params.orgID,
+        date: {
+          $gte: startOfMonth,
+          $lte: today,
+        },
       },
       "date timeIn timeOut"
     ).sort({ _id: -1 });
 
+    const diff = moment(today).diff(startOfMonth, "days") + 1;
+
+    today = moment().format("YYYY-MM-ddd");
+    startOfMonth = moment(startOfMonth, "YYYY-MM-DD").format("YYYY-MM-ddd");
+
+    var workDays = diff - Math.floor(diff / 7);
+    if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
+
+    const percentageAttendance = Math.floor(
+      (attendances.length * 100) / workDays
+    );
+
     res.json({
       data: attendances,
+      percentageAttendance,
     });
   } catch (err) {
     res.json({
@@ -176,8 +255,29 @@ const getFilteredUserReport = async (req, res) => {
       "date timeIn timeOut"
     ).sort({ _id: -1 });
 
+    var percentageAttendance = 0;
+
+    if (attendances.length > 0) {
+      var diff = from == to ? 0 : moment(to).diff(from, "days") + 1;
+      var workDays = diff - Math.floor(diff / 7);
+
+      to = moment(to, "YYYY-MM-DD").format("YYYY-MM-ddd");
+      from = moment(from, "YYYY-MM-DD").format("YYYY-MM-ddd");
+
+      if (workDays > 0) {
+        if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
+      }
+
+      if (workDays > 0)
+        percentageAttendance = Math.floor(
+          (attendances.length * 100) / workDays
+        );
+      else percentageAttendance = 100;
+    }
+
     res.json({
       data: attendances,
+      percentageAttendance,
     });
   } catch (err) {
     res.json({
@@ -204,14 +304,39 @@ const getCustomReport = async (req, res) => {
         },
       },
       "userName date timeIn timeOut"
-    ).sort({ _id: -1 });
+    )
+      .populate("organizationID", "users")
+      .sort({ _id: -1 });
+
+    var percentageAttendance = 0;
+
+    if (attendances.length > 0) {
+      var diff = from == to ? 0 : moment(to).diff(from, "days") + 1;
+      var workDays = diff - Math.floor(diff / 7);
+
+      to = moment(to, "YYYY-MM-DD").format("YYYY-MM-ddd");
+      from = moment(from, "YYYY-MM-DD").format("YYYY-MM-ddd");
+
+      if (workDays > 0) {
+        if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
+      }
+
+      if (workDays > 0)
+        percentageAttendance = Math.floor(
+          (attendances.length * 100) /
+            (workDays * attendances[0].organizationID.users.length)
+        );
+      else percentageAttendance = 100;
+    }
 
     res.json({
       data: attendances,
+      percentageAttendance,
     });
   } catch (err) {
+    console.log("err", err);
     res.json({
-      error: `Error: Couldn't generate report.`,
+      error: "Error: Couldn't generate report.",
     });
   }
 };

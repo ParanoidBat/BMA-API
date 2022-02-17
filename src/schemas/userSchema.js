@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Organization = require("./organizationSchema");
+const Attendance = require("./attendanceSchema");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -19,6 +21,7 @@ const userSchema = new mongoose.Schema({
   salary: {
     type: Number,
     min: 0,
+    default: 0,
   },
   advance: {
     type: Number,
@@ -30,6 +33,15 @@ const userSchema = new mongoose.Schema({
     enum: ["Admin", "Worker", "Manager"],
     default: "Worker",
   },
+});
+
+userSchema.post("findOneAndDelete", async (doc) => {
+  if (doc) {
+    await Organization.findByIdAndUpdate(doc.organizationID, {
+      $pull: { users: doc._id },
+    });
+    await Attendance.deleteMany({ userID: doc._id });
+  }
 });
 
 const User = mongoose.model("User", userSchema);
