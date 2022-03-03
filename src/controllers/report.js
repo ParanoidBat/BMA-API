@@ -179,7 +179,7 @@ const getSixMonthsReport = async (req, res) => {
     if (today.includes("Sun") || last6Months.includes("Sun")) workDays -= 1;
 
     const percentageAttendance = Math.floor(
-      (attendances * 100) /
+      (attendances.length * 100) /
         (workDays * attendances[0].organizationID.users.length)
     );
 
