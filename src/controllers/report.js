@@ -334,7 +334,6 @@ const getCustomReport = async (req, res) => {
       percentageAttendance,
     });
   } catch (err) {
-    console.log("err", err);
     res.json({
       error: "Error: Couldn't generate report.",
     });
