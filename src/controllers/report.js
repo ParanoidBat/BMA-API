@@ -170,10 +170,11 @@ const getSixMonthsReport = async (req, res) => {
       "date timeIn timeOut userName"
     ).populate("organizationID", "users");
 
+    const diff = moment(today).diff(last6Months, "days") + 1;
+
     today = moment().format("YYYY-MM-ddd");
     last6Months = moment(last6Months, "YYYY-MM-DD").format("YYYY-MM-ddd");
 
-    const diff = moment(today).diff(last6Months, "days") + 1;
     var workDays = diff - Math.floor(diff / 7);
 
     if (today.includes("Sun") || last6Months.includes("Sun")) workDays -= 1;
