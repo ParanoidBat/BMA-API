@@ -22,6 +22,7 @@ const createUser = async (req, res) => {
         $push: {
           users: user._id,
         },
+        $inc: { usersCount: user.role == "Worker" ? 1 : 0 },
       },
       (err) => {
         if (err) throw err;
@@ -42,12 +43,17 @@ const updateUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await User.findByIdAndUpdate(id, req.body, {
-      runValidators: true,
-      new: true,
-    });
-
-    await user.save();
+    const user = await User.findByIdAndUpdate(
+      id,
+      req.body,
+      {
+        runValidators: true,
+        new: true,
+      },
+      (err) => {
+        if (err) throw err;
+      }
+    );
 
     res.json({
       data: user,
@@ -67,19 +73,16 @@ const updateUserWithAuthID = async (req, res) => {
       req.body,
       {
         runValidators: true,
+      },
+      (err) => {
+        if (err) throw err;
       }
     );
-
-    if (user == null) throw "User doesn't exist";
-
-    await user.save();
 
     res.json({
       data: true,
     });
   } catch (err) {
-    console.log(err);
-
     res.status(500).json({
       error: "Error: Couldn't update user.",
     });
@@ -120,12 +123,18 @@ const getUser = async (req, res) => {
 
 const getUsersList = async (req, res) => {
   try {
-    const users = await User.find({}, "_id name organizationID").sort({
-      name: 1,
-    });
+    const { page } = req.query;
+
+    const users = await User.find({}, "_id name organizationID")
+      .sort({
+        name: 1,
+      })
+      .limit(10)
+      .skip((page - 1) * 10);
 
     res.json({
       data: users,
+      page,
     });
   } catch (err) {
     res.status(500).json({

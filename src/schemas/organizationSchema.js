@@ -18,6 +18,7 @@ const organizationSchema = new mongoose.Schema({
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     unique: true,
   },
+  usersCount: Number,
   users: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "User",

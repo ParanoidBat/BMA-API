@@ -37,10 +37,12 @@ const userSchema = new mongoose.Schema({
 
 userSchema.post("findOneAndDelete", async (doc) => {
   if (doc) {
-    await Organization.findByIdAndUpdate(doc.organizationID, {
-      $pull: { users: doc._id },
-    });
-    await Attendance.deleteMany({ userID: doc._id });
+    await Promise.all([
+      Organization.findByIdAndUpdate(doc.organizationID, {
+        $pull: { users: doc._id },
+      }),
+      Attendance.deleteMany({ userID: doc._id }),
+    ]);
   }
 });
 

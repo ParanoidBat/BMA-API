@@ -18,7 +18,7 @@ const getTodayReport = async (req, res) => {
     if (removed.length > 0) await organization.save();
 
     const percentageAttendance =
-      (organization.dailyAttendance.length / organization.users.length) * 100;
+      (organization.dailyAttendance.length / organization.usersCount) * 100;
 
     res.json({
       data: organization.dailyAttendance,
@@ -33,35 +33,54 @@ const getTodayReport = async (req, res) => {
 
 const getWeeklyReport = async (req, res) => {
   try {
+    const { page } = req.query;
     const startOfWeek = moment().clone().startOf("week").format("YYYY-MM-DD");
     const today = moment().format("YYYY-MM-DD");
 
-    const attendances = await Attendance.find(
-      {
-        date: {
-          $gt: startOfWeek,
-          $lte: today,
+    const [attendances, count] = await Promise.all([
+      Attendance.find(
+        {
+          date: {
+            $gt: startOfWeek,
+            $lte: today,
+          },
+          organizationID: req.params.id,
         },
-        organizationID: req.params.id,
-      },
-      "date timeIn timeOut userName"
-    ).populate("organizationID", "users");
+        "date timeIn timeOut userName"
+      )
+        .limit(10)
+        .skip((page - 1) * 10)
+        .populate("organizationID", "usersCount"),
+      Attendance.find(
+        {
+          date: {
+            $gt: startOfWeek,
+            $lte: today,
+          },
+          organizationID: req.params.id,
+        },
+        "_id"
+      ).countDocuments(),
+    ]);
 
     if (attendances.length) {
       const diff = moment(today).diff(startOfWeek, "days") + 1;
       const percentageAttendance = Math.floor(
-        (attendances.length * 100) /
-          (attendances[0].organizationID.users.length * diff)
+        (count * 100) / (attendances[0].organizationID.usersCount * diff)
       );
 
       res.json({
         data: attendances,
         percentageAttendance,
+        page,
+        count,
       });
     } else {
       res.json({
         data: attendances,
         percentageAttendance: 0,
+        page,
+        count,
       });
     }
   } catch (err) {
@@ -73,19 +92,35 @@ const getWeeklyReport = async (req, res) => {
 
 const getMonthlyReport = async (req, res) => {
   try {
+    const { page } = req.query;
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
 
-    const attendances = await Attendance.find(
-      {
-        date: {
-          $gte: startOfMonth,
-          $lte: today,
+    const [attendances, count] = await Promise.all([
+      Attendance.find(
+        {
+          date: {
+            $gte: startOfMonth,
+            $lte: today,
+          },
+          organizationID: req.params.id,
         },
-        organizationID: req.params.id,
-      },
-      "date timeIn timeOut userName"
-    ).populate("organizationID", "users");
+        "date timeIn timeOut userName"
+      )
+        .limit(10)
+        .skip((page - 1) * 10)
+        .populate("organizationID", "usersCount"),
+      Attendance.find(
+        {
+          date: {
+            $gt: startOfMonth,
+            $lte: today,
+          },
+          organizationID: req.params.id,
+        },
+        "_id"
+      ).countDocuments(),
+    ]);
 
     if (attendances.length) {
       const diff = moment(today).diff(startOfMonth, "days") + 1;
@@ -97,18 +132,21 @@ const getMonthlyReport = async (req, res) => {
       if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
 
       const percentageAttendance = Math.floor(
-        (attendances.length * 100) /
-          (workDays * attendances[0].organizationID.users.length)
+        (count * 100) / (workDays * attendances[0].organizationID.usersCount)
       );
 
       res.json({
         data: attendances,
         percentageAttendance,
+        page,
+        count,
       });
     } else {
       res.json({
         data: attendances,
         percentageAttendance: 0,
+        page,
+        count,
       });
     }
   } catch (err) {
@@ -120,6 +158,7 @@ const getMonthlyReport = async (req, res) => {
 
 const getThreeMonthsReport = async (req, res) => {
   try {
+    const { page } = req.query;
     var last3Months = moment()
       .clone()
       .subtract(3, "months")
@@ -128,16 +167,31 @@ const getThreeMonthsReport = async (req, res) => {
 
     var today = moment().format("YYYY-MM-DD");
 
-    const attendances = await Attendance.find(
-      {
-        date: {
-          $gte: last3Months,
-          $lte: today,
+    const [attendances, count] = await Promise.all([
+      Attendance.find(
+        {
+          date: {
+            $gte: last3Months,
+            $lte: today,
+          },
+          organizationID: req.params.id,
         },
-        organizationID: req.params.id,
-      },
-      "date timeIn timeOut userName"
-    ).populate("organizationID", "users");
+        "date timeIn timeOut userName"
+      )
+        .populate("organizationID", "usersCount")
+        .limit(10)
+        .skip((page - 1) * 10),
+      Attendance.find(
+        {
+          date: {
+            $gte: last3Months,
+            $lte: today,
+          },
+          organizationID: req.params.id,
+        },
+        "_id"
+      ).countDocuments(),
+    ]);
 
     if (attendances.length) {
       const diff = moment(today).diff(last3Months, "days") + 1;
@@ -149,18 +203,21 @@ const getThreeMonthsReport = async (req, res) => {
       if (today.includes("Sun") || last3Months.includes("Sun")) workDays -= 1;
 
       const percentageAttendance = Math.floor(
-        (attendances.length * 100) /
-          (workDays * attendances[0].organizationID.users.length)
+        (count * 100) / (workDays * attendances[0].organizationID.usersCount)
       );
 
       res.json({
         data: attendances,
         percentageAttendance,
+        page,
+        count,
       });
     } else {
       res.json({
         data: attendances,
         percentageAttendance: 0,
+        page,
+        count,
       });
     }
   } catch (err) {
@@ -170,75 +227,39 @@ const getThreeMonthsReport = async (req, res) => {
   }
 };
 
-const getSixMonthsReport = async (req, res) => {
-  try {
-    var last6Months = moment()
-      .clone()
-      .subtract(6, "months")
-      .startOf("month")
-      .format("YYYY-MM-DD");
-
-    var today = moment().format("YYYY-MM-DD");
-
-    const attendances = await Attendance.find(
-      {
-        date: {
-          $gte: last6Months,
-          $lte: today,
-        },
-        organizationID: req.params.id,
-      },
-      "date timeIn timeOut userName"
-    ).populate("organizationID", "users");
-
-    if (attendances.length) {
-      const diff = moment(today).diff(last6Months, "days") + 1;
-
-      today = moment().format("YYYY-MM-ddd");
-      last6Months = moment(last6Months, "YYYY-MM-DD").format("YYYY-MM-ddd");
-
-      var workDays = diff - Math.floor(diff / 7);
-
-      if (today.includes("Sun") || last6Months.includes("Sun")) workDays -= 1;
-
-      const percentageAttendance = Math.floor(
-        (attendances.length * 100) /
-          (workDays * attendances[0].organizationID.users.length)
-      );
-
-      res.json({
-        data: attendances,
-        percentageAttendance,
-      });
-    } else {
-      res.json({
-        data: attendances,
-        percentageAttendance: 0,
-      });
-    }
-  } catch (err) {
-    res.json({
-      error: "Error: Couldn't generate 6 months report.",
-    });
-  }
-};
-
 const getUserReport = async (req, res) => {
   try {
+    const { page } = req.query;
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
 
-    const attendances = await Attendance.find(
-      {
-        userID: req.params.userID,
-        organizationID: req.params.orgID,
-        date: {
-          $gte: startOfMonth,
-          $lte: today,
+    const [attendances, count] = await Promise.all([
+      Attendance.find(
+        {
+          userID: req.params.userID,
+          organizationID: req.params.orgID,
+          date: {
+            $gte: startOfMonth,
+            $lte: today,
+          },
         },
-      },
-      "date timeIn timeOut"
-    ).sort({ _id: -1 });
+        "date timeIn timeOut"
+      )
+        .sort({ _id: -1 })
+        .limit(10)
+        .skip((page - 1) * 10),
+      Attendance.find(
+        {
+          userID: req.params.userID,
+          organizationID: req.params.orgID,
+          date: {
+            $gte: startOfMonth,
+            $lte: today,
+          },
+        },
+        "_id"
+      ).countDocuments(),
+    ]);
 
     if (attendances.length) {
       const diff = moment(today).diff(startOfMonth, "days") + 1;
@@ -249,18 +270,20 @@ const getUserReport = async (req, res) => {
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
 
-      const percentageAttendance = Math.floor(
-        (attendances.length * 100) / workDays
-      );
+      const percentageAttendance = Math.floor((count * 100) / workDays);
 
       res.json({
         data: attendances,
         percentageAttendance,
+        page,
+        count,
       });
     } else {
       res.json({
         data: attendances,
         percentageAttendance: 0,
+        page,
+        count,
       });
     }
   } catch (err) {
@@ -273,23 +296,40 @@ const getUserReport = async (req, res) => {
 const getFilteredUserReport = async (req, res) => {
   try {
     var { from, to } = req.body;
+    const { page } = req.query;
 
     from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
     to = moment(to, "YYYY-MM-DD").format("YYYY-MM-DD");
 
     if (moment(from).isAfter(to)) [from, to] = [to, from];
 
-    const attendances = await Attendance.find(
-      {
-        userID: req.params.userID,
-        organizationID: req.params.orgID,
-        date: {
-          $lte: to,
-          $gte: from,
+    const [attendances, count] = await Promise.all([
+      Attendance.find(
+        {
+          userID: req.params.userID,
+          organizationID: req.params.orgID,
+          date: {
+            $lte: to,
+            $gte: from,
+          },
         },
-      },
-      "date timeIn timeOut"
-    ).sort({ _id: -1 });
+        "date timeIn timeOut"
+      )
+        .sort({ _id: -1 })
+        .limit(10)
+        .skip((page - 1) * 10),
+      Attendance.find(
+        {
+          userID: req.params.userID,
+          organizationID: req.params.orgID,
+          date: {
+            $lte: to,
+            $gte: from,
+          },
+        },
+        "_id"
+      ).countDocuments(),
+    ]);
 
     var percentageAttendance = 0;
 
@@ -300,20 +340,17 @@ const getFilteredUserReport = async (req, res) => {
       to = moment(to, "YYYY-MM-DD").format("YYYY-MM-ddd");
       from = moment(from, "YYYY-MM-DD").format("YYYY-MM-ddd");
 
-      if (workDays > 0) {
+      if (workDays) {
         if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
-      }
-
-      if (workDays > 0)
-        percentageAttendance = Math.floor(
-          (attendances.length * 100) / workDays
-        );
-      else percentageAttendance = 100;
+        percentageAttendance = Math.floor((count * 100) / workDays);
+      } else percentageAttendance = 0;
     }
 
     res.json({
       data: attendances,
       percentageAttendance,
+      page,
+      count,
     });
   } catch (err) {
     res.json({
@@ -325,24 +362,39 @@ const getFilteredUserReport = async (req, res) => {
 const getCustomReport = async (req, res) => {
   try {
     var { from, to } = req.body;
+    const { page } = req.query;
 
     from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
     to = moment(to, "YYYY-MM-DD").format("YYYY-MM-DD");
 
     if (moment(from).isAfter(to)) [from, to] = [to, from];
 
-    const attendances = await Attendance.find(
-      {
-        organizationID: req.params.id,
-        date: {
-          $lte: to,
-          $gte: from,
+    const [attendances, count] = await Promise.all([
+      Attendance.find(
+        {
+          organizationID: req.params.id,
+          date: {
+            $lte: to,
+            $gte: from,
+          },
         },
-      },
-      "userName date timeIn timeOut"
-    )
-      .populate("organizationID", "users")
-      .sort({ _id: -1 });
+        "userName date timeIn timeOut"
+      )
+        .sort({ _id: -1 })
+        .limit(10)
+        .skip((page - 1) * 10)
+        .populate("organizationID", "usersCount"),
+      Attendance.find(
+        {
+          organizationID: req.params.id,
+          date: {
+            $lte: to,
+            $gte: from,
+          },
+        },
+        "_id"
+      ).countDocuments(),
+    ]);
 
     var percentageAttendance = 0;
 
@@ -353,12 +405,11 @@ const getCustomReport = async (req, res) => {
       to = moment(to, "YYYY-MM-DD").format("YYYY-MM-ddd");
       from = moment(from, "YYYY-MM-DD").format("YYYY-MM-ddd");
 
-      if (workDays > 0) {
+      if (workDays) {
         if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
 
         percentageAttendance = Math.floor(
-          (attendances.length * 100) /
-            (workDays * attendances[0].organizationID.users.length)
+          (count * 100) / (workDays * attendances[0].organizationID.usersCount)
         );
       } else percentageAttendance = 0;
     }
@@ -366,6 +417,8 @@ const getCustomReport = async (req, res) => {
     res.json({
       data: attendances,
       percentageAttendance,
+      page,
+      count,
     });
   } catch (err) {
     res.json({
@@ -379,7 +432,6 @@ module.exports = {
   getWeeklyReport,
   getMonthlyReport,
   getThreeMonthsReport,
-  getSixMonthsReport,
   getUserReport,
   getFilteredUserReport,
   getCustomReport,

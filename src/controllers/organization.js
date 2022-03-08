@@ -19,10 +19,15 @@ const createOrganization = async (req, res) => {
 
 const getOrganizationsList = async (req, res) => {
   try {
-    const organizations = await Organization.find({}, "_id name address");
+    const { page } = req.query;
+
+    const organizations = await Organization.find({}, "_id name address")
+      .limit(10)
+      .skip((page - 1) * limit);
 
     res.json({
       data: organizations,
+      page,
     });
   } catch (err) {
     res.json({
@@ -65,10 +70,11 @@ const updateOrganization = async (req, res) => {
   try {
     const organization = await Organization.findByIdAndUpdate(
       req.params.id,
-      req.body
+      req.body,
+      (err) => {
+        if (err) throw err;
+      }
     );
-
-    await organization.save();
 
     res.json({
       data: true,
@@ -82,15 +88,30 @@ const updateOrganization = async (req, res) => {
 
 const getOrganizationUsersList = async (req, res) => {
   try {
+    const { page } = req.query;
+
     const users = await User.find(
       { organizationID: req.params.id },
-      "_id name salary advance"
-    ).sort({
-      name: 1,
-    });
+      "_id name salary"
+    )
+      .sort({
+        name: 1,
+      })
+      .limit(10)
+      .skip((page - 1) * 10);
+
+    // const organization = await Organization.findById(req.params.id).populate(
+    //   "users",
+    //   "_id name salary"
+    // );
+
+    // const users = organization.users.filter((user, index) => {
+    //   if (index >= (page - 1) * 5 && index < (page - 1) * 5 + 5) return true;
+    // });
 
     res.json({
       data: users,
+      page,
     });
   } catch (err) {
     res.status(500).json({

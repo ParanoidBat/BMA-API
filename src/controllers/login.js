@@ -10,7 +10,10 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const credentials = await Credentials.findOne({ email }).populate("user");
+    const credentials = await Credentials.findOne({ email }).populate(
+      "user",
+      "_id organizationID"
+    );
 
     if (credentials && (await bcrypt.compare(password, credentials.password))) {
       const token = jwt.sign(
