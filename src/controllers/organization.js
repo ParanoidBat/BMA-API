@@ -68,13 +68,9 @@ const deleteOrganization = async (req, res) => {
 
 const updateOrganization = async (req, res) => {
   try {
-    const organization = await Organization.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      (err) => {
-        if (err) throw err;
-      }
-    );
+    await Organization.findByIdAndUpdate(req.params.id, req.body, (err) => {
+      if (err) throw err;
+    });
 
     res.json({
       data: true,

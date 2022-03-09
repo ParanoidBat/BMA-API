@@ -15,7 +15,7 @@ const getTodayReport = async (req, res) => {
       return attendance.date != today;
     });
 
-    if (removed.length > 0) await organization.save();
+    if (removed.length) await organization.save();
 
     const percentageAttendance =
       (organization.dailyAttendance.length / organization.usersCount) * 100;
