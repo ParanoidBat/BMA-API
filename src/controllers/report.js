@@ -3,6 +3,10 @@ const moment = require("moment");
 const { remove } = require("lodash");
 const Organization = require("../schemas/organizationSchema");
 
+/*
+ * 1 is added to moment.diff() results to include the present in the calculations
+ */
+
 const getTodayReport = async (req, res) => {
   try {
     const today = moment().format("YYYY-MM-DD");
@@ -50,7 +54,7 @@ const getWeeklyReport = async (req, res) => {
       )
         .limit(10)
         .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount"),
+        .populate("organizationID", "usersCount isSaturdayOff"),
       Attendance.find(
         {
           date: {
@@ -64,7 +68,10 @@ const getWeeklyReport = async (req, res) => {
     ]);
 
     if (attendances.length) {
-      const diff = moment(today).diff(startOfWeek, "days") + 1;
+      const diff =
+        moment(today).diff(startOfWeek, "days") +
+        (attendances[0].organizationID.isSaturdayOff ? 0 : 1);
+
       const percentageAttendance = Math.floor(
         (count * 100) / (attendances[0].organizationID.usersCount * diff)
       );
@@ -109,7 +116,7 @@ const getMonthlyReport = async (req, res) => {
       )
         .limit(10)
         .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount"),
+        .populate("organizationID", "usersCount isSaturdayOff"),
       Attendance.find(
         {
           date: {
@@ -130,6 +137,11 @@ const getMonthlyReport = async (req, res) => {
 
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
+      if (
+        attendances[0].organizationID.isSaturdayOff &&
+        (today.includes("Sat") || startOfMonth.includes("Sat"))
+      )
+        workDays -= 1;
 
       const percentageAttendance = Math.floor(
         (count * 100) / (workDays * attendances[0].organizationID.usersCount)
@@ -178,7 +190,7 @@ const getThreeMonthsReport = async (req, res) => {
         },
         "date timeIn timeOut userName"
       )
-        .populate("organizationID", "usersCount")
+        .populate("organizationID", "usersCount isSaturdayOff")
         .limit(10)
         .skip((page - 1) * 10),
       Attendance.find(
@@ -201,6 +213,11 @@ const getThreeMonthsReport = async (req, res) => {
 
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || last3Months.includes("Sun")) workDays -= 1;
+      if (
+        attendances[0].organizationID.isSaturdayOff &&
+        (today.includes("Sat") || last3Months.includes("Sat"))
+      )
+        workDays -= 1;
 
       const percentageAttendance = Math.floor(
         (count * 100) / (workDays * attendances[0].organizationID.usersCount)
@@ -247,7 +264,8 @@ const getUserReport = async (req, res) => {
       )
         .sort({ _id: -1 })
         .limit(10)
-        .skip((page - 1) * 10),
+        .skip((page - 1) * 10)
+        .populate("organizationID", "isSaturdayOff"),
       Attendance.find(
         {
           userID: req.params.userID,
@@ -269,6 +287,11 @@ const getUserReport = async (req, res) => {
 
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
+      if (
+        attendances[0].organizationID.isSaturdayOff &&
+        (today.includes("Sat") || startOfMonth.includes("Sat"))
+      )
+        workDays -= 1;
 
       const percentageAttendance = Math.floor((count * 100) / workDays);
 
@@ -317,7 +340,8 @@ const getFilteredUserReport = async (req, res) => {
       )
         .sort({ _id: -1 })
         .limit(10)
-        .skip((page - 1) * 10),
+        .skip((page - 1) * 10)
+        .populate("organizationID", "isSaturdayOff"),
       Attendance.find(
         {
           userID: req.params.userID,
@@ -342,7 +366,17 @@ const getFilteredUserReport = async (req, res) => {
 
       if (workDays) {
         if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
-        percentageAttendance = Math.floor((count * 100) / workDays);
+        if (
+          attendances[0].organizationID.isSaturdayOff &&
+          (to.includes("Sat") || from.includes("Sat"))
+        )
+          workDays -= 1;
+
+        try {
+          percentageAttendance = Math.floor((count * 100) / workDays);
+        } catch (err) {
+          percentageAttendance = 0;
+        }
       } else percentageAttendance = 0;
     }
 
@@ -383,7 +417,7 @@ const getCustomReport = async (req, res) => {
         .sort({ _id: -1 })
         .limit(10)
         .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount"),
+        .populate("organizationID", "usersCount isSaturdayOff"),
       Attendance.find(
         {
           organizationID: req.params.id,
@@ -407,10 +441,20 @@ const getCustomReport = async (req, res) => {
 
       if (workDays) {
         if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
+        if (
+          attendances[0].organizationID.isSaturdayOff &&
+          (to.includes("Sat") || from.includes("Sat"))
+        )
+          workDays -= 1;
 
-        percentageAttendance = Math.floor(
-          (count * 100) / (workDays * attendances[0].organizationID.usersCount)
-        );
+        try {
+          percentageAttendance = Math.floor(
+            (count * 100) /
+              (workDays * attendances[0].organizationID.usersCount)
+          );
+        } catch (err) {
+          percentageAttendance = 0;
+        }
       } else percentageAttendance = 0;
     }
 

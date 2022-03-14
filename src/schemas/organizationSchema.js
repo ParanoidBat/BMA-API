@@ -19,6 +19,10 @@ const organizationSchema = new mongoose.Schema({
     unique: true,
   },
   usersCount: Number,
+  isSaturdayOff: {
+    type: Boolean,
+    default: false,
+  },
   users: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "User",
