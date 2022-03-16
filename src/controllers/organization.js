@@ -1,5 +1,6 @@
 const Organization = require("../schemas/organizationSchema");
 const User = require("../schemas/userSchema");
+const moment = require("moment");
 
 const createOrganization = async (req, res) => {
   try {
@@ -116,6 +117,36 @@ const getOrganizationUsersList = async (req, res) => {
   }
 };
 
+const createUserLeaves = async (req, res) => {
+  try {
+    var { from, to, userName } = req.body;
+    from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
+    to = moment(to, "YYYY-MM-DD").format("YYYY-MM-DD");
+
+    if (from > to) [from, to] = [to, from];
+
+    Organization.findByIdAndUpdate(
+      req.params.id,
+      {
+        $push: {
+          leaves: { from, to, userName },
+        },
+      },
+      (err) => {
+        if (err) throw err;
+      }
+    );
+
+    res.json({
+      data: true,
+    });
+  } catch (err) {
+    res.json({
+      error: "Error: Couldn't apply leave.",
+    });
+  }
+};
+
 module.exports = {
   createOrganization,
   getOrganizationsList,
@@ -123,4 +154,5 @@ module.exports = {
   getOrganization,
   updateOrganization,
   deleteOrganization,
+  createUserLeaves,
 };

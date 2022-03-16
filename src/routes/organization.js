@@ -5,6 +5,7 @@ const {
   getOrganizationUsersList,
   updateOrganization,
   deleteOrganization,
+  createUserLeaves,
 } = require("../controllers/organization");
 
 const express = require("express");
@@ -18,5 +19,6 @@ router
   .put(updateOrganization)
   .delete(deleteOrganization);
 router.route("/:id/users").get(getOrganizationUsersList);
+router.route("/:id/leave").put(createUserLeaves);
 
 module.exports = router;

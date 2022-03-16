@@ -7,6 +7,33 @@ const Organization = require("../schemas/organizationSchema");
  * 1 is added to moment.diff() results to include the present in the calculations
  */
 
+const calculateLeaves = (startRange, endRange, leaves, isSaturdayOff) => {
+  var totalLeaves = 0;
+
+  if (leaves.length) {
+    for (var i = leaves.length - 1; i > -1; i--) {
+      if (leaves[i].from >= startRange) {
+        if (leaves[i].to <= endRange) {
+          totalLeaves += moment(leaves[i].to).diff(leaves[i].from, "days");
+
+          if (!isSaturdayOff && leaves[i].to != endRange) totalLeaves += 1;
+        } else {
+          totalLeaves += moment(endRange).diff(leaves[i].from, "days");
+
+          if (!isSaturdayOff) totalLeaves += 1;
+        }
+      } else if (leaves[i].to > startRange) {
+        totalLeaves += moment(leaves[i].to).diff(startRange);
+        if (!isSaturdayOff) totalLeaves += 1;
+      } else if (leaves[i].from < startRange) {
+        break;
+      }
+    }
+  }
+
+  return totalLeaves;
+};
+
 const getTodayReport = async (req, res) => {
   try {
     const today = moment().format("YYYY-MM-DD");
@@ -39,9 +66,10 @@ const getWeeklyReport = async (req, res) => {
   try {
     const { page } = req.query;
     const startOfWeek = moment().clone().startOf("week").format("YYYY-MM-DD");
+    const endOfWeek = moment().clone().endOf("week").format("YYYY-MM-DD");
     const today = moment().format("YYYY-MM-DD");
 
-    const [attendances, count] = await Promise.all([
+    var [attendances, count] = await Promise.all([
       Attendance.find(
         {
           date: {
@@ -54,7 +82,7 @@ const getWeeklyReport = async (req, res) => {
       )
         .limit(10)
         .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount isSaturdayOff"),
+        .populate("organizationID", "usersCount isSaturdayOff leaves"),
       Attendance.find(
         {
           date: {
@@ -68,6 +96,13 @@ const getWeeklyReport = async (req, res) => {
     ]);
 
     if (attendances.length) {
+      count += calculateLeaves(
+        startOfWeek,
+        endOfWeek,
+        attendances[0].organizationID.leaves,
+        attendances[0].organizationID.isSaturdayOff
+      );
+
       const diff =
         moment(today).diff(startOfWeek, "days") +
         (attendances[0].organizationID.isSaturdayOff ? 0 : 1);
@@ -91,7 +126,8 @@ const getWeeklyReport = async (req, res) => {
       });
     }
   } catch (err) {
-    res.json({
+    console.log("err", err);
+    res.status(500).json({
       error: "Error: Couldn't generate weekly report.",
     });
   }
@@ -101,9 +137,10 @@ const getMonthlyReport = async (req, res) => {
   try {
     const { page } = req.query;
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
+    var endOfMonth = moment().clone().endOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
 
-    const [attendances, count] = await Promise.all([
+    var [attendances, count] = await Promise.all([
       Attendance.find(
         {
           date: {
@@ -116,11 +153,11 @@ const getMonthlyReport = async (req, res) => {
       )
         .limit(10)
         .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount isSaturdayOff"),
+        .populate("organizationID", "usersCount isSaturdayOff leaves"),
       Attendance.find(
         {
           date: {
-            $gt: startOfMonth,
+            $gte: startOfMonth,
             $lte: today,
           },
           organizationID: req.params.id,
@@ -130,6 +167,13 @@ const getMonthlyReport = async (req, res) => {
     ]);
 
     if (attendances.length) {
+      count += calculateLeaves(
+        startOfMonth,
+        endOfMonth,
+        attendances[0].organizationID.leaves,
+        attendances[0].organizationID.isSaturdayOff
+      );
+
       const diff = moment(today).diff(startOfMonth, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -177,9 +221,15 @@ const getThreeMonthsReport = async (req, res) => {
       .startOf("month")
       .format("YYYY-MM-DD");
 
+    var endOfLast3Months = moment()
+      .clone()
+      .subtract(3, "months")
+      .endOf("month")
+      .format("YYYY-MM-DD");
+
     var today = moment().format("YYYY-MM-DD");
 
-    const [attendances, count] = await Promise.all([
+    var [attendances, count] = await Promise.all([
       Attendance.find(
         {
           date: {
@@ -190,7 +240,7 @@ const getThreeMonthsReport = async (req, res) => {
         },
         "date timeIn timeOut userName"
       )
-        .populate("organizationID", "usersCount isSaturdayOff")
+        .populate("organizationID", "usersCount isSaturdayOff leaves")
         .limit(10)
         .skip((page - 1) * 10),
       Attendance.find(
@@ -206,6 +256,13 @@ const getThreeMonthsReport = async (req, res) => {
     ]);
 
     if (attendances.length) {
+      count += calculateLeaves(
+        last3Months,
+        endOfLast3Months,
+        attendances[0].organizationID.leaves,
+        attendances[0].organizationID.isSaturdayOff
+      );
+
       const diff = moment(today).diff(last3Months, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
