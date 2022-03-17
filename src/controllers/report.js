@@ -17,7 +17,7 @@ const calculateLeaves = (startRange, endRange, leaves, isSaturdayOff) => {
       if (leaves[i].to <= endRange) {
         totalLeaves += moment(leaves[i].to).diff(leaves[i].from, "days");
 
-        if (!isSaturdayOff && leaves[i].to != endRange) totalLeaves += 1;
+        if (!isSaturdayOff && leaves[i].to == endRange) totalLeaves += 1;
       } else {
         totalLeaves += moment(endRange).diff(leaves[i].from, "days");
 
@@ -28,7 +28,6 @@ const calculateLeaves = (startRange, endRange, leaves, isSaturdayOff) => {
       if (!isSaturdayOff) totalLeaves += 1;
     } else if (leaves[i].from < startRange) break;
   }
-
   return totalLeaves;
 };
 
@@ -67,7 +66,6 @@ const getTodayReport = async (req, res) => {
       percentageAttendance,
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({
       error: "Error: Couldn't generate daily report.",
     });
@@ -220,11 +218,7 @@ const getThreeMonthsReport = async (req, res) => {
       .startOf("month")
       .format("YYYY-MM-DD");
 
-    var endOfLast3Months = moment()
-      .clone()
-      .subtract(3, "months")
-      .endOf("month")
-      .format("YYYY-MM-DD");
+    var endOfMonth = moment().clone().endOf("month").format("YYYY-MM-DD");
 
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
@@ -258,11 +252,10 @@ const getThreeMonthsReport = async (req, res) => {
     if (attendances.length) {
       count += calculateLeaves(
         last3Months,
-        endOfLast3Months,
+        endOfMonth,
         organization.leaves,
         organization.isSaturdayOff
       );
-
       const diff = moment(today).diff(last3Months, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -414,7 +407,7 @@ const getFilteredUserReport = async (req, res) => {
         try {
           percentageAttendance = Math.floor((count * 100) / workDays);
         } catch (err) {
-          console.log("Error: ", err);
+          throw err;
         }
       }
     }
@@ -490,7 +483,7 @@ const getCustomReport = async (req, res) => {
             (count * 100) / (workDays * organization.usersCount)
           );
         } catch (err) {
-          console.log("Error: ", err);
+          throw err;
         }
       }
     }
