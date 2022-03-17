@@ -1,7 +1,7 @@
 const Attendance = require("../schemas/attendanceSchema");
+const Organization = require("../schemas/organizationSchema");
 const moment = require("moment");
 const { remove } = require("lodash");
-const Organization = require("../schemas/organizationSchema");
 
 /*
  * 1 is added to moment.diff() results to include the present in the calculations
@@ -10,25 +10,23 @@ const Organization = require("../schemas/organizationSchema");
 const calculateLeaves = (startRange, endRange, leaves, isSaturdayOff) => {
   var totalLeaves = 0;
 
-  if (leaves.length) {
-    for (var i = leaves.length - 1; i > -1; i--) {
-      if (leaves[i].from >= startRange) {
-        if (leaves[i].to <= endRange) {
-          totalLeaves += moment(leaves[i].to).diff(leaves[i].from, "days");
+  if (!leaves.length) return 0;
 
-          if (!isSaturdayOff && leaves[i].to != endRange) totalLeaves += 1;
-        } else {
-          totalLeaves += moment(endRange).diff(leaves[i].from, "days");
+  for (var i = leaves.length - 1; i > -1; i--) {
+    if (leaves[i].from >= startRange) {
+      if (leaves[i].to <= endRange) {
+        totalLeaves += moment(leaves[i].to).diff(leaves[i].from, "days");
 
-          if (!isSaturdayOff) totalLeaves += 1;
-        }
-      } else if (leaves[i].to > startRange) {
-        totalLeaves += moment(leaves[i].to).diff(startRange);
+        if (!isSaturdayOff && leaves[i].to != endRange) totalLeaves += 1;
+      } else {
+        totalLeaves += moment(endRange).diff(leaves[i].from, "days");
+
         if (!isSaturdayOff) totalLeaves += 1;
-      } else if (leaves[i].from < startRange) {
-        break;
       }
-    }
+    } else if (leaves[i].to > startRange) {
+      totalLeaves += moment(leaves[i].to).diff(startRange);
+      if (!isSaturdayOff) totalLeaves += 1;
+    } else if (leaves[i].from < startRange) break;
   }
 
   return totalLeaves;
@@ -39,14 +37,27 @@ const getTodayReport = async (req, res) => {
     const today = moment().format("YYYY-MM-DD");
 
     const organization = await Organization.findById(req.params.id).populate(
-      "dailyAttendance"
+      "dailyAttendance",
+      "date timeIn timeOut userName"
     );
 
     const removed = remove(organization.dailyAttendance, (attendance) => {
       return attendance.date != today;
     });
 
-    if (removed.length) await organization.save();
+    if (removed.length) {
+      Organization.findByIdAndUpdate(
+        req.params.id,
+        {
+          $pull: {
+            dailyAttendance: { $in: removed },
+          },
+        },
+        (err) => {
+          if (err) throw err;
+        }
+      );
+    }
 
     const percentageAttendance =
       (organization.dailyAttendance.length / organization.usersCount) * 100;
@@ -56,6 +67,7 @@ const getTodayReport = async (req, res) => {
       percentageAttendance,
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({
       error: "Error: Couldn't generate daily report.",
     });
@@ -68,8 +80,9 @@ const getWeeklyReport = async (req, res) => {
     const startOfWeek = moment().clone().startOf("week").format("YYYY-MM-DD");
     const endOfWeek = moment().clone().endOf("week").format("YYYY-MM-DD");
     const today = moment().format("YYYY-MM-DD");
+    var percentageAttendance = 0;
 
-    var [attendances, count] = await Promise.all([
+    var [attendances, count, organization] = await Promise.all([
       Attendance.find(
         {
           date: {
@@ -81,8 +94,7 @@ const getWeeklyReport = async (req, res) => {
         "date timeIn timeOut userName"
       )
         .limit(10)
-        .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount isSaturdayOff leaves"),
+        .skip((page - 1) * 10),
       Attendance.find(
         {
           date: {
@@ -93,40 +105,33 @@ const getWeeklyReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
+      Organization.findById(req.params.id, "usersCount isSaturdayOff leaves"),
     ]);
 
     if (attendances.length) {
       count += calculateLeaves(
         startOfWeek,
         endOfWeek,
-        attendances[0].organizationID.leaves,
-        attendances[0].organizationID.isSaturdayOff
+        organization.leaves,
+        organization.isSaturdayOff
       );
 
       const diff =
         moment(today).diff(startOfWeek, "days") +
-        (attendances[0].organizationID.isSaturdayOff ? 0 : 1);
+        (organization.isSaturdayOff ? 0 : 1);
 
-      const percentageAttendance = Math.floor(
-        (count * 100) / (attendances[0].organizationID.usersCount * diff)
+      percentageAttendance = Math.floor(
+        (count * 100) / (organization.usersCount * diff)
       );
-
-      res.json({
-        data: attendances,
-        percentageAttendance,
-        page,
-        count,
-      });
-    } else {
-      res.json({
-        data: attendances,
-        percentageAttendance: 0,
-        page,
-        count,
-      });
     }
+
+    res.json({
+      data: attendances,
+      percentageAttendance,
+      page,
+      count,
+    });
   } catch (err) {
-    console.log("err", err);
     res.status(500).json({
       error: "Error: Couldn't generate weekly report.",
     });
@@ -139,8 +144,9 @@ const getMonthlyReport = async (req, res) => {
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
     var endOfMonth = moment().clone().endOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
+    var percentageAttendance = 0;
 
-    var [attendances, count] = await Promise.all([
+    var [attendances, count, organization] = await Promise.all([
       Attendance.find(
         {
           date: {
@@ -152,8 +158,7 @@ const getMonthlyReport = async (req, res) => {
         "date timeIn timeOut userName"
       )
         .limit(10)
-        .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount isSaturdayOff leaves"),
+        .skip((page - 1) * 10),
       Attendance.find(
         {
           date: {
@@ -164,14 +169,15 @@ const getMonthlyReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
+      Organization.findById(req.params.id, "usersCount isSaturdayOff leaves"),
     ]);
 
     if (attendances.length) {
       count += calculateLeaves(
         startOfMonth,
         endOfMonth,
-        attendances[0].organizationID.leaves,
-        attendances[0].organizationID.isSaturdayOff
+        organization.leaves,
+        organization.isSaturdayOff
       );
 
       const diff = moment(today).diff(startOfMonth, "days") + 1;
@@ -182,31 +188,24 @@ const getMonthlyReport = async (req, res) => {
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
       if (
-        attendances[0].organizationID.isSaturdayOff &&
+        organization.isSaturdayOff &&
         (today.includes("Sat") || startOfMonth.includes("Sat"))
       )
         workDays -= 1;
 
-      const percentageAttendance = Math.floor(
-        (count * 100) / (workDays * attendances[0].organizationID.usersCount)
+      percentageAttendance = Math.floor(
+        (count * 100) / (workDays * organization.usersCount)
       );
-
-      res.json({
-        data: attendances,
-        percentageAttendance,
-        page,
-        count,
-      });
-    } else {
-      res.json({
-        data: attendances,
-        percentageAttendance: 0,
-        page,
-        count,
-      });
     }
-  } catch (err) {
+
     res.json({
+      data: attendances,
+      percentageAttendance,
+      page,
+      count,
+    });
+  } catch (err) {
+    res.status(500).json({
       error: "Error: Couldn't generate monthly report.",
     });
   }
@@ -228,8 +227,9 @@ const getThreeMonthsReport = async (req, res) => {
       .format("YYYY-MM-DD");
 
     var today = moment().format("YYYY-MM-DD");
+    var percentageAttendance = 0;
 
-    var [attendances, count] = await Promise.all([
+    var [attendances, count, organization] = await Promise.all([
       Attendance.find(
         {
           date: {
@@ -240,7 +240,6 @@ const getThreeMonthsReport = async (req, res) => {
         },
         "date timeIn timeOut userName"
       )
-        .populate("organizationID", "usersCount isSaturdayOff leaves")
         .limit(10)
         .skip((page - 1) * 10),
       Attendance.find(
@@ -253,14 +252,15 @@ const getThreeMonthsReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
+      Organization.findById(req.params.id, "usersCount isSaturdayOff leaves"),
     ]);
 
     if (attendances.length) {
       count += calculateLeaves(
         last3Months,
         endOfLast3Months,
-        attendances[0].organizationID.leaves,
-        attendances[0].organizationID.isSaturdayOff
+        organization.leaves,
+        organization.isSaturdayOff
       );
 
       const diff = moment(today).diff(last3Months, "days") + 1;
@@ -271,31 +271,24 @@ const getThreeMonthsReport = async (req, res) => {
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || last3Months.includes("Sun")) workDays -= 1;
       if (
-        attendances[0].organizationID.isSaturdayOff &&
+        organization.isSaturdayOff &&
         (today.includes("Sat") || last3Months.includes("Sat"))
       )
         workDays -= 1;
 
-      const percentageAttendance = Math.floor(
-        (count * 100) / (workDays * attendances[0].organizationID.usersCount)
+      percentageAttendance = Math.floor(
+        (count * 100) / (workDays * organization.usersCount)
       );
-
-      res.json({
-        data: attendances,
-        percentageAttendance,
-        page,
-        count,
-      });
-    } else {
-      res.json({
-        data: attendances,
-        percentageAttendance: 0,
-        page,
-        count,
-      });
     }
-  } catch (err) {
+
     res.json({
+      data: attendances,
+      percentageAttendance,
+      page,
+      count,
+    });
+  } catch (err) {
+    res.status(500).json({
       error: "Error: Couldn't generate 3 months report.",
     });
   }
@@ -306,12 +299,12 @@ const getUserReport = async (req, res) => {
     const { page } = req.query;
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
+    var percentageAttendance = 0;
 
-    const [attendances, count] = await Promise.all([
+    const [attendances, count, organization] = await Promise.all([
       Attendance.find(
         {
           userID: req.params.userID,
-          organizationID: req.params.orgID,
           date: {
             $gte: startOfMonth,
             $lte: today,
@@ -321,12 +314,10 @@ const getUserReport = async (req, res) => {
       )
         .sort({ _id: -1 })
         .limit(10)
-        .skip((page - 1) * 10)
-        .populate("organizationID", "isSaturdayOff"),
+        .skip((page - 1) * 10),
       Attendance.find(
         {
           userID: req.params.userID,
-          organizationID: req.params.orgID,
           date: {
             $gte: startOfMonth,
             $lte: today,
@@ -334,6 +325,7 @@ const getUserReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
+      Organization.findById(req.params.orgID, "isSaturdayOff"),
     ]);
 
     if (attendances.length) {
@@ -345,29 +337,22 @@ const getUserReport = async (req, res) => {
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
       if (
-        attendances[0].organizationID.isSaturdayOff &&
+        organization.isSaturdayOff &&
         (today.includes("Sat") || startOfMonth.includes("Sat"))
       )
         workDays -= 1;
 
-      const percentageAttendance = Math.floor((count * 100) / workDays);
-
-      res.json({
-        data: attendances,
-        percentageAttendance,
-        page,
-        count,
-      });
-    } else {
-      res.json({
-        data: attendances,
-        percentageAttendance: 0,
-        page,
-        count,
-      });
+      percentageAttendance = Math.floor((count * 100) / workDays);
     }
-  } catch (err) {
+
     res.json({
+      data: attendances,
+      percentageAttendance,
+      page,
+      count,
+    });
+  } catch (err) {
+    res.status(500).json({
       error: `Error: Couldn't generate report for user.`,
     });
   }
@@ -376,6 +361,7 @@ const getUserReport = async (req, res) => {
 const getFilteredUserReport = async (req, res) => {
   try {
     var { from, to } = req.body;
+    var percentageAttendance = 0;
     const { page } = req.query;
 
     from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
@@ -383,11 +369,10 @@ const getFilteredUserReport = async (req, res) => {
 
     if (moment(from).isAfter(to)) [from, to] = [to, from];
 
-    const [attendances, count] = await Promise.all([
+    const [attendances, count, organization] = await Promise.all([
       Attendance.find(
         {
           userID: req.params.userID,
-          organizationID: req.params.orgID,
           date: {
             $lte: to,
             $gte: from,
@@ -397,12 +382,10 @@ const getFilteredUserReport = async (req, res) => {
       )
         .sort({ _id: -1 })
         .limit(10)
-        .skip((page - 1) * 10)
-        .populate("organizationID", "isSaturdayOff"),
+        .skip((page - 1) * 10),
       Attendance.find(
         {
           userID: req.params.userID,
-          organizationID: req.params.orgID,
           date: {
             $lte: to,
             $gte: from,
@@ -410,9 +393,8 @@ const getFilteredUserReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
+      Organization.findById(req.params.orgID, "isSaturdayOff"),
     ]);
-
-    var percentageAttendance = 0;
 
     if (attendances.length) {
       var diff = from == to ? 0 : moment(to).diff(from, "days") + 1;
@@ -424,7 +406,7 @@ const getFilteredUserReport = async (req, res) => {
       if (workDays) {
         if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
         if (
-          attendances[0].organizationID.isSaturdayOff &&
+          organization.isSaturdayOff &&
           (to.includes("Sat") || from.includes("Sat"))
         )
           workDays -= 1;
@@ -432,9 +414,9 @@ const getFilteredUserReport = async (req, res) => {
         try {
           percentageAttendance = Math.floor((count * 100) / workDays);
         } catch (err) {
-          percentageAttendance = 0;
+          console.log("Error: ", err);
         }
-      } else percentageAttendance = 0;
+      }
     }
 
     res.json({
@@ -444,7 +426,7 @@ const getFilteredUserReport = async (req, res) => {
       count,
     });
   } catch (err) {
-    res.json({
+    res.status(500).json({
       error: `Error: Couldn't generate report for user.`,
     });
   }
@@ -454,13 +436,14 @@ const getCustomReport = async (req, res) => {
   try {
     var { from, to } = req.body;
     const { page } = req.query;
+    var percentageAttendance = 0;
 
     from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
     to = moment(to, "YYYY-MM-DD").format("YYYY-MM-DD");
 
     if (moment(from).isAfter(to)) [from, to] = [to, from];
 
-    const [attendances, count] = await Promise.all([
+    const [attendances, count, organization] = await Promise.all([
       Attendance.find(
         {
           organizationID: req.params.id,
@@ -473,8 +456,7 @@ const getCustomReport = async (req, res) => {
       )
         .sort({ _id: -1 })
         .limit(10)
-        .skip((page - 1) * 10)
-        .populate("organizationID", "usersCount isSaturdayOff"),
+        .skip((page - 1) * 10),
       Attendance.find(
         {
           organizationID: req.params.id,
@@ -485,9 +467,8 @@ const getCustomReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
+      Organization.findById(req.params.id, "usersCount isSaturdayOff"),
     ]);
-
-    var percentageAttendance = 0;
 
     if (attendances.length) {
       var diff = from == to ? 0 : moment(to).diff(from, "days") + 1;
@@ -499,20 +480,19 @@ const getCustomReport = async (req, res) => {
       if (workDays) {
         if (to.includes("Sun") || from.includes("Sun")) workDays -= 1;
         if (
-          attendances[0].organizationID.isSaturdayOff &&
+          organization.isSaturdayOff &&
           (to.includes("Sat") || from.includes("Sat"))
         )
           workDays -= 1;
 
         try {
           percentageAttendance = Math.floor(
-            (count * 100) /
-              (workDays * attendances[0].organizationID.usersCount)
+            (count * 100) / (workDays * organization.usersCount)
           );
         } catch (err) {
-          percentageAttendance = 0;
+          console.log("Error: ", err);
         }
-      } else percentageAttendance = 0;
+      }
     }
 
     res.json({
@@ -522,7 +502,7 @@ const getCustomReport = async (req, res) => {
       count,
     });
   } catch (err) {
-    res.json({
+    res.status(500).json({
       error: "Error: Couldn't generate report.",
     });
   }
