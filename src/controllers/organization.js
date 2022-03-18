@@ -24,13 +24,14 @@ const getOrganizationsList = async (req, res) => {
 
     const organizations = await Organization.find({}, "_id name address")
       .limit(10)
-      .skip((page - 1) * limit);
+      .skip((page - 1) * 10);
 
     res.json({
       data: organizations,
       page,
     });
   } catch (err) {
+    console.log("err", err);
     res.json({
       error: "Error: Couldn't retrieve organizations list.",
     });
