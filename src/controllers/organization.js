@@ -88,28 +88,25 @@ const getOrganizationUsersList = async (req, res) => {
   try {
     const { page } = req.query;
 
-    const users = await User.find(
-      { organizationID: req.params.id },
-      "_id name salary"
-    )
-      .sort({
-        name: 1,
-      })
-      .limit(10)
-      .skip((page - 1) * 10);
-
-    // const organization = await Organization.findById(req.params.id).populate(
-    //   "users",
-    //   "_id name salary"
-    // );
-
-    // const users = organization.users.filter((user, index) => {
-    //   if (index >= (page - 1) * 5 && index < (page - 1) * 5 + 5) return true;
-    // });
+    const [users, count] = await Promise.all([
+      User.find({ organizationID: req.params.id }, "_id name salary")
+        .sort({
+          name: 1,
+        })
+        .limit(10)
+        .skip((page - 1) * 10),
+      User.find(
+        {
+          organizationID: req.params.id,
+        },
+        "_id"
+      ).countDocuments(),
+    ]);
 
     res.json({
       data: users,
       page,
+      count,
     });
   } catch (err) {
     res.status(500).json({
