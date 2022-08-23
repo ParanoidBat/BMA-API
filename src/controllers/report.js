@@ -76,7 +76,6 @@ const getWeeklyReport = async (req, res) => {
   try {
     const { page } = req.query;
     const startOfWeek = moment().clone().startOf("week").format("YYYY-MM-DD");
-    const endOfWeek = moment().clone().endOf("week").format("YYYY-MM-DD");
     const today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
 
@@ -107,13 +106,6 @@ const getWeeklyReport = async (req, res) => {
     ]);
 
     if (attendances.length) {
-      count += calculateLeaves(
-        startOfWeek,
-        endOfWeek,
-        organization.leaves,
-        organization.isSaturdayOff
-      );
-
       const diff =
         moment(today).diff(startOfWeek, "days") +
         (organization.isSaturdayOff ? 0 : 1);
@@ -140,7 +132,6 @@ const getMonthlyReport = async (req, res) => {
   try {
     const { page } = req.query;
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
-    var endOfMonth = moment().clone().endOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
 
@@ -171,13 +162,6 @@ const getMonthlyReport = async (req, res) => {
     ]);
 
     if (attendances.length) {
-      count += calculateLeaves(
-        startOfMonth,
-        endOfMonth,
-        organization.leaves,
-        organization.isSaturdayOff
-      );
-
       const diff = moment(today).diff(startOfMonth, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -218,8 +202,6 @@ const getThreeMonthsReport = async (req, res) => {
       .startOf("month")
       .format("YYYY-MM-DD");
 
-    var endOfMonth = moment().clone().endOf("month").format("YYYY-MM-DD");
-
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
 
@@ -250,12 +232,6 @@ const getThreeMonthsReport = async (req, res) => {
     ]);
 
     if (attendances.length) {
-      count += calculateLeaves(
-        last3Months,
-        endOfMonth,
-        organization.leaves,
-        organization.isSaturdayOff
-      );
       const diff = moment(today).diff(last3Months, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");

@@ -19,13 +19,6 @@ const organizationSchema = new mongoose.Schema({
     unique: true,
   },
   usersCount: Number,
-  leaves: [
-    {
-      userName: String,
-      from: String,
-      to: String,
-    },
-  ],
   isSaturdayOff: {
     type: Boolean,
     default: false,

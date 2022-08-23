@@ -7,6 +7,7 @@ const attendanceRoutes = require("./routes/attendance");
 const reportRoutes = require("./routes/report");
 const organizationRoutes = require("./routes/organization");
 const loginRoute = require("./routes/login");
+const leavesRoute = require("./routes/leavesRoutes");
 
 const authenticate = require("./middlewares/auth");
 
@@ -32,6 +33,7 @@ app.use("/user", userRoutes);
 app.use("/attendance", attendanceRoutes);
 app.use("/report", reportRoutes);
 app.use("/organization", organizationRoutes);
+app.use("/leaves", leavesRoute);
 app.use("/login", loginRoute);
 
 const port = process.env.PORT || 4000;

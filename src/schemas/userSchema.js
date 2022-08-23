@@ -23,6 +23,12 @@ const userSchema = new mongoose.Schema({
     min: 0,
     default: 0,
   },
+  leaves: [
+    {
+      from: String,
+      to: String,
+    },
+  ],
   advance: {
     type: Number,
     min: 0,
