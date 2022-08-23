@@ -2,7 +2,7 @@ const LeavesRequest = require("../schemas/leavesRequestSchema");
 const User = require("../schemas/userSchema");
 
 const getAllRequests = async (req, res) => {
-  const { id, status } = req.params;
+  const { id, status } = req.query;
   try {
     let query;
     if (status) query = LeavesRequest.find({ orgID: id, status });
@@ -55,32 +55,19 @@ const updateRequest = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const request = await LeavesRequest.findByIdAndUpdate(
-      id,
-      req.body,
-      {
-        new: true,
-      },
-      (err) => {
-        if (err) throw err;
-      }
-    );
+    const request = await LeavesRequest.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     if (request.status == "Accepted") {
-      await User.findByIdAndUpdate(
-        request.userID,
-        {
-          $push: {
-            leaves: {
-              from: request.from,
-              to: request.to,
-            },
+      await User.findByIdAndUpdate(request.userID, {
+        $push: {
+          leaves: {
+            from: request.from,
+            to: request.to,
           },
         },
-        (err) => {
-          if (err) throw err;
-        }
-      );
+      });
     }
 
     return res.json({

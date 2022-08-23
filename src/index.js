@@ -33,7 +33,7 @@ app.use("/user", userRoutes);
 app.use("/attendance", attendanceRoutes);
 app.use("/report", reportRoutes);
 app.use("/organization", organizationRoutes);
-app.use("/leaves", leavesRoute);
+app.use("/leave", leavesRoute);
 app.use("/login", loginRoute);
 
 const port = process.env.PORT || 4000;
