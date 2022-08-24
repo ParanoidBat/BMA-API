@@ -61,7 +61,7 @@ const updateRequest = async (req, res) => {
   try {
     const request = await LeavesRequest.findByIdAndUpdate(id, req.body, {
       new: true,
-    });
+    }).populate("userID", "name");
 
     if (request.status == "Accepted") {
       await User.findByIdAndUpdate(request.userID, {
