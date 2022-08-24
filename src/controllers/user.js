@@ -22,7 +22,7 @@ const createUser = async (req, res) => {
         $push: {
           users: user._id,
         },
-        $inc: { usersCount: user.role == "Worker" ? 1 : 0 },
+        $inc: { usersCount: user.role != "Admin" ? 1 : 0 },
       },
       (err) => {
         if (err) throw err;
@@ -80,7 +80,7 @@ const updateUserWithAuthID = async (req, res) => {
     );
 
     res.json({
-      data: true,
+      data: user,
     });
   } catch (err) {
     res.status(500).json({

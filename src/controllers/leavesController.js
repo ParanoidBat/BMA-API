@@ -5,8 +5,12 @@ const getAllRequests = async (req, res) => {
   const { id, status } = req.query;
   try {
     let query;
-    if (status) query = LeavesRequest.find({ orgID: id, status });
-    else query = LeavesRequest.find({ orgID: id });
+    if (status)
+      query = LeavesRequest.find({ orgID: id, status }).populate(
+        "userID",
+        "name"
+      );
+    else query = LeavesRequest.find({ orgID: id }).populate("userID", "name");
 
     const requests = await query;
 
