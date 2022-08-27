@@ -7,13 +7,23 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, phone } = req.body;
 
   try {
-    const credentials = await Credentials.findOne({ email }).populate(
-      "user",
-      "_id organizationID role"
-    );
+    let query;
+    if (email) {
+      query = Credentials.findOne({ email }).populate(
+        "user",
+        "_id organizationID role"
+      );
+    } else if (phone) {
+      query = Credentials.findOne({ phone }).populate(
+        "user",
+        "_id organizationID role"
+      );
+    }
+
+    const credentials = await query;
 
     if (credentials && (await bcrypt.compare(password, credentials.password))) {
       const token = jwt.sign(

@@ -9,12 +9,10 @@ const createUser = async (req, res) => {
 
     await user.save();
 
-    if (req.body.email) {
-      const credentials = new Credentials(req.body);
-      credentials.user = user;
-      credentials.password = await bcrypt.hash(credentials.password, 10);
-      await credentials.save();
-    }
+    const credentials = new Credentials(req.body);
+    credentials.user = user;
+    credentials.password = await bcrypt.hash(credentials.password, 10);
+    await credentials.save();
 
     Organization.findByIdAndUpdate(
       user.organizationID,
@@ -30,7 +28,7 @@ const createUser = async (req, res) => {
     );
 
     res.json({
-      data: true,
+      data: user,
     });
   } catch (err) {
     res.status(500).json({

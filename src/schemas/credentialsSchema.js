@@ -6,7 +6,6 @@ const credentialsSchema = new mongoose.Schema({
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     unique: true,
     lowercase: true,
-    required: true,
   },
   password: {
     type: String,
@@ -15,6 +14,10 @@ const credentialsSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+  },
+  phone: {
+    type: String,
+    unique: true,
   },
 });
 
