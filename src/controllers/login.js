@@ -12,10 +12,7 @@ const login = async (req, res) => {
   try {
     let query;
     if (email) {
-      query = Credentials.findOne({ email }).populate(
-        "user",
-        "_id organizationID role"
-      );
+      query = Credentials.findOne({ email }).populate("user");
     } else if (phone) {
       query = Credentials.findOne({ phone }).populate("user");
     }
