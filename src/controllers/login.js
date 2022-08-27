@@ -27,6 +27,7 @@ const login = async (req, res) => {
           token,
           id: credentials.user._id,
           orgID: credentials.user.organizationID,
+          role: credentials.user.role,
         },
       });
     } else {
