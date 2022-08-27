@@ -24,18 +24,18 @@ const getAllRequests = async (req, res) => {
   }
 };
 
-const getRequest = async (req, res) => {
+const getUserRequests = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const request = await LeavesRequest.findOne({ userID: id });
+    const requests = await LeavesRequest.find({ userID: id });
 
     return res.json({
-      data: request,
+      data: requests,
     });
-  } catch (err) {
-    return res.status(500).json({
-      error: "Couldn't retrieve request.",
+  } catch (error) {
+    res.status(500).json({
+      error: "Couldn't retrieve leave requests",
     });
   }
 };
@@ -102,7 +102,7 @@ const deleteRequest = async (req, res) => {
 
 module.exports = {
   getAllRequests,
-  getRequest,
+  getUserRequests,
   createRequest,
   updateRequest,
   deleteRequest,
