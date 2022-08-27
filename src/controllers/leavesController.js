@@ -63,7 +63,7 @@ const updateRequest = async (req, res) => {
       new: true,
     }).populate("userID", "name");
 
-    if (request.status == "Accepted") {
+    if (request.status === "Accepted") {
       await User.findByIdAndUpdate(request.userID, {
         $push: {
           leaves: {
