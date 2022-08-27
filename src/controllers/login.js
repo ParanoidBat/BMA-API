@@ -12,7 +12,7 @@ const login = async (req, res) => {
   try {
     const credentials = await Credentials.findOne({ email }).populate(
       "user",
-      "_id organizationID"
+      "_id organizationID role"
     );
 
     if (credentials && (await bcrypt.compare(password, credentials.password))) {
