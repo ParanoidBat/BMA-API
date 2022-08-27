@@ -17,10 +17,7 @@ const login = async (req, res) => {
         "_id organizationID role"
       );
     } else if (phone) {
-      query = Credentials.findOne({ phone }).populate(
-        "user",
-        "_id organizationID role"
-      );
+      query = Credentials.findOne({ phone }).populate("user");
     }
 
     const credentials = await query;
@@ -35,9 +32,7 @@ const login = async (req, res) => {
       res.json({
         data: {
           token,
-          id: credentials.user._id,
-          orgID: credentials.user.organizationID,
-          role: credentials.user.role,
+          user: credentials.user,
         },
       });
     } else {
