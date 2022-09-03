@@ -4,6 +4,43 @@ const Credentials = require("../schemas/credentialsSchema");
 const Attendance = require("../schemas/attendanceSchema");
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
+const { findIndex, find } = require("lodash");
+
+const calculateLeaves = (userLeaves, isSatOff, attendances) => {
+  // Find holes in attendance, if a hole is accounted for in leaves; add into total leaves
+  let leaves = 0;
+  const workDays = isSatOff ? 5 : 6;
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  let index = findIndex(
+    days,
+    (day) => day === moment().clone().startOf("month").format("ddd")
+  );
+  if (index == -1) index = 0;
+
+  attendances.forEach((obj) => {
+    const day = moment(obj.date, "YYYY-MM-DD").format("ddd");
+
+    if (day !== days[index % workDays]) {
+      const leave = find(userLeaves, (leaveObj) => {
+        return (
+          moment(obj.date, "YYYY-MM-DD").isSameOrAfter(
+            moment(leaveObj.from, "YYYY-MM-DD")
+          ) &&
+          moment(obj.date, "YYYY-MM-DD").isSameOrBefore(
+            moment(leaveObj.to, "YYYY-MM-DD")
+          )
+        );
+      });
+
+      if (leave) leaves++;
+    }
+
+    index++;
+  });
+
+  return leaves;
+};
 
 const createUser = async (req, res) => {
   try {
@@ -149,7 +186,18 @@ const getPercentageAttendance = async (req, res) => {
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
 
-    const [count, organization] = await Promise.all([
+    const [userLeaves, attendances, count, organization] = await Promise.all([
+      User.findById(req.params.userID, "leaves"),
+      Attendance.find(
+        {
+          userID: req.params.userID,
+          date: {
+            $gte: startOfMonth,
+            $lte: today,
+          },
+        },
+        "date"
+      ).sort({ date: 1 }),
       Attendance.find(
         {
           userID: req.params.userID,
@@ -177,7 +225,12 @@ const getPercentageAttendance = async (req, res) => {
       )
         workDays -= 1;
 
-      percentageAttendance = Math.floor((count * 100) / workDays);
+      const leaves = calculateLeaves(
+        userLeaves.leaves,
+        organization.isSaturdayOff,
+        attendances
+      );
+      percentageAttendance = Math.floor(((count + leaves) * 100) / workDays);
     }
 
     res.json({

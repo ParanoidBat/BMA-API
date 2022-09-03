@@ -7,30 +7,6 @@ const { remove } = require("lodash");
  * 1 is added to moment.diff() results to include the present in the calculations
  */
 
-const calculateLeaves = (startRange, endRange, leaves, isSaturdayOff) => {
-  var totalLeaves = 0;
-
-  if (!leaves.length) return 0;
-
-  for (var i = leaves.length - 1; i > -1; i--) {
-    if (leaves[i].from >= startRange) {
-      if (leaves[i].to <= endRange) {
-        totalLeaves += moment(leaves[i].to).diff(leaves[i].from, "days");
-
-        if (!isSaturdayOff && leaves[i].to == endRange) totalLeaves += 1;
-      } else {
-        totalLeaves += moment(endRange).diff(leaves[i].from, "days");
-
-        if (!isSaturdayOff) totalLeaves += 1;
-      }
-    } else if (leaves[i].to > startRange) {
-      totalLeaves += moment(leaves[i].to).diff(startRange);
-      if (!isSaturdayOff) totalLeaves += 1;
-    } else if (leaves[i].from < startRange) break;
-  }
-  return totalLeaves;
-};
-
 const getTodayReport = async (req, res) => {
   try {
     const today = moment().format("YYYY-MM-DD");
