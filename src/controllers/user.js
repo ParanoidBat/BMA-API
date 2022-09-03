@@ -1,7 +1,9 @@
 const User = require("../schemas/userSchema");
 const Organization = require("../schemas/organizationSchema");
 const Credentials = require("../schemas/credentialsSchema");
+const Attendance = require("../schemas/attendanceSchema");
 const bcrypt = require("bcryptjs");
+const moment = require("moment");
 
 const createUser = async (req, res) => {
   try {
@@ -141,6 +143,53 @@ const getUsersList = async (req, res) => {
   }
 };
 
+const getPercentageAttendance = async (req, res) => {
+  try {
+    var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
+    var today = moment().format("YYYY-MM-DD");
+    var percentageAttendance = 0;
+
+    const [count, organization] = await Promise.all([
+      Attendance.find(
+        {
+          userID: req.params.userID,
+          date: {
+            $gte: startOfMonth,
+            $lte: today,
+          },
+        },
+        "_id"
+      ).countDocuments(),
+      Organization.findById(req.params.orgID, "isSaturdayOff"),
+    ]);
+
+    if (count) {
+      const diff = moment(today).diff(startOfMonth, "days") + 1;
+
+      today = moment().format("YYYY-MM-ddd");
+      startOfMonth = moment(startOfMonth, "YYYY-MM-DD").format("YYYY-MM-ddd");
+
+      var workDays = diff - Math.floor(diff / 7);
+      if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
+      if (
+        organization.isSaturdayOff &&
+        (today.includes("Sat") || startOfMonth.includes("Sat"))
+      )
+        workDays -= 1;
+
+      percentageAttendance = Math.floor((count * 100) / workDays);
+    }
+
+    res.json({
+      data: percentageAttendance,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: `Error: Couldn't get user percentage attendance.`,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   updateUser,
@@ -148,4 +197,5 @@ module.exports = {
   deleteUser,
   getUser,
   getUsersList,
+  getPercentageAttendance,
 };
