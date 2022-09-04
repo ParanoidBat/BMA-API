@@ -5,6 +5,7 @@ const Attendance = require("../schemas/attendanceSchema");
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const { findIndex, find } = require("lodash");
+const transporter = require("../mailTransporter");
 
 const calculateLeaves = (userLeaves, isSatOff, attendances) => {
   // Find holes in attendance, if a hole is accounted for in leaves; add into total leaves
@@ -243,6 +244,29 @@ const getPercentageAttendance = async (req, res) => {
   }
 };
 
+const sendEmail = async (req, res) => {
+  const { subject, text, to } = req.body;
+
+  const options = {
+    from: "waynetech010@gmail.com",
+    to,
+    subject,
+    text,
+  };
+
+  try {
+    await transporter.sendMail(options);
+    transporter.close();
+
+    return res.json({
+      data: true,
+    });
+  } catch (error) {
+    transporter.close();
+    return res.status(500).json({ error });
+  }
+};
+
 module.exports = {
   createUser,
   updateUser,
@@ -251,4 +275,5 @@ module.exports = {
   getUser,
   getUsersList,
   getPercentageAttendance,
+  sendEmail,
 };
