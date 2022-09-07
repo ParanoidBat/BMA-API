@@ -12,7 +12,7 @@ if (process.env.NODE_ENV !== "production") {
  * @apiGroup Auth
  *
  * @apiSuccess {Object} data Data containing token and user
- * @apiSuccessExample Example data on success:
+ * @apiSuccessExample {json} Success-Example:
  * {
  * token: {String},
  * user: {Object}

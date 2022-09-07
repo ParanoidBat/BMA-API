@@ -18,7 +18,10 @@ const organizationSchema = new mongoose.Schema({
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     unique: true,
   },
-  usersCount: Number,
+  usersCount: {
+    type: Number,
+    default: 0,
+  },
   isSaturdayOff: {
     type: Boolean,
     default: false,

@@ -3,6 +3,23 @@ const User = require("../schemas/userSchema");
 const Organization = require("../schemas/organizationSchema");
 const moment = require("moment");
 
+/**
+ * @api {post} /attendance/ Check In
+ * @apiName CheckIn
+ * @apiGroup Attendance
+ *
+ * @apiBody {Number} authID User's finger ID
+ * @apiBody {String} organizationID Organization's ID the user belongs to
+ * @apiBody {String} date Date of the checkin. Format: YYYY-MM-DD
+ * @apiBody {String} timeIn The checkin time. Format: hh:mm:ss
+ *
+ * @apiDescription
+ * Examples on date and time:
+ * date: 2022-08-15
+ * time: 05:15:16
+ *
+ * @apiSuccess {Boolean} data { data: true }
+ */
 const checkin = async (req, res) => {
   try {
     const user = await User.findOne({
@@ -41,6 +58,18 @@ const checkin = async (req, res) => {
   }
 };
 
+/**
+ * @api {post} /attendance/checkout Check Out
+ * @apiName Checkout
+ * @apiGroup Attendance
+ *
+ * @apiBody {Number} authID
+ * @apiBody {String} date
+ * @apiBody {String} organizationID
+ * @apiBody {String} timeOut
+ *
+ * @apiSuccess {Boolean} data { data: true }
+ */
 const checkout = async (req, res) => {
   // Doesn't matter if checked out on same day or not.
   try {

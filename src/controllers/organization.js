@@ -1,14 +1,41 @@
 const Organization = require("../schemas/organizationSchema");
 const User = require("../schemas/userSchema");
-const moment = require("moment");
 
+/**
+ * @apiDefine InternalSystem Internal Business Developer Access
+ * Only used in the internal system
+ */
+
+/**
+ * @api {post} /organization/ Create New Organization
+ * @apiName CreateOrganization
+ * @apiGroup Organization
+ *
+ * @apiBody {String} name Name of the organization
+ * @apiBody {String} address Address of the organization
+ * @apiBody {String} phone Phone of the Organization
+ * @apiBody {String} [email] Email address of the organization
+ *
+ * @apiSuccess {Object} data The organization object
+ * @apiSuccessExample {json} Success-Example:
+ * {
+ * _id: "dvfsge4t3rwfdgf",
+ * name: "BMA",
+ * address: "162, B3, Lake City, Lahore",
+ * phone: "03451481947",
+ * usersCount: 0,
+ * isSaturdayOff: false,
+ * users: [User],
+ * dailyAttendance: [Attendance]
+ * }
+ */
 const createOrganization = async (req, res) => {
   try {
     const organization = new Organization(req.body);
 
     await organization.save();
 
-    res.json({
+    return res.json({
       data: organization,
     });
   } catch (err) {
@@ -18,6 +45,26 @@ const createOrganization = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /organization/ Get All Organizations
+ * @apiName GetOrgsList
+ * @apiGroup Organization
+ * @apiPermission InternalSystem
+ *
+ * @apiQuery {Number} page Page number for the pagination. One page has 10 results.
+ * @apiSuccess {Object[]} data Array of organizations. But only '_id', 'name' and 'address'
+ * @apiSuccess {Number} page Current page number
+ * @apiSuccessExample {json} Sucess-Example:
+ * {
+ * data:
+ * [{
+ *   _id: "dfg34t45tgfdy5",
+ *   name: "BMA",
+ *   address: "162, B3, Lake City, Lahore"
+ * }],
+ * page: 1
+ * }
+ */
 const getOrganizationsList = async (req, res) => {
   try {
     const { page } = req.query;
@@ -38,6 +85,14 @@ const getOrganizationsList = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /organization/:id/ Get Organization
+ * @apiName GetOrganization
+ * @apiGroup Organization
+ *
+ * @apiParam {String} id Organiztion's ID
+ * @apiSuccess {Object} data Organization object. Same as 'Create New Organization'
+ */
 const getOrganization = async (req, res) => {
   try {
     const organization = await Organization.findById(req.params.id);
@@ -54,6 +109,15 @@ const getOrganization = async (req, res) => {
   }
 };
 
+/**
+ * @api {delete} /organization/:id/ Delete An Organization
+ * @apiName DeleteOrganization
+ * @apiGroup Organization
+ * @apiPermission InternalSystem
+ *
+ * @apiParam {String} id Organization's ID
+ * @apiSuccess {Boolean} data { data: true }
+ */
 const deleteOrganization = async (req, res) => {
   try {
     await Organization.findByIdAndDelete(req.params.id);
@@ -68,6 +132,21 @@ const deleteOrganization = async (req, res) => {
   }
 };
 
+/**
+ * @api {put} /organization/:id Update An Organization
+ * @apiName UpdateOrganization
+ * @apiGroup Organization
+ *
+ * @apiParam {String} id Organization's ID
+ * @apiBody {String} name
+ * @apiBody {String} address
+ * @apiBody {String} phone
+ * @apiBody {String} email
+ * @apiBody {String} isSaturdayOff
+ * @apiSuccess {Boolean} data { data: true }
+ *
+ * @apiVersion 1.0.0
+ */
 const updateOrganization = async (req, res) => {
   try {
     await Organization.findByIdAndUpdate(req.params.id, req.body, (err) => {
@@ -84,6 +163,28 @@ const updateOrganization = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /organization/:id/users Get Organization's Users
+ * @apiName GetOrgUsers
+ * @apiGroup Organization
+ *
+ * @apiParam {String} id Organization's ID
+ * @apiQuery {Number} page Page number for pagination. One page has 10 results
+ * @apiSuccess {Object[]} data Array of user objects; containing _id, name and salary
+ * @apiSuccess {Number} page Current page number
+ * @apiSuccess {Number} count Total number of users in organization. Except the admin
+ * @apiSuccessExample {json} Sucess-Example:
+ * {
+ * data:
+ * [{
+ *   _id,
+ *   name,
+ *   salary
+ * }],
+ * page: 1,
+ * count: 56
+ * }
+ */
 const getOrganizationUsersList = async (req, res) => {
   try {
     const { page } = req.query;
@@ -115,36 +216,6 @@ const getOrganizationUsersList = async (req, res) => {
   }
 };
 
-const createUserLeaves = async (req, res) => {
-  try {
-    var { from, to, userName } = req.body;
-    from = moment(from, "YYYY-MM-DD").format("YYYY-MM-DD");
-    to = moment(to, "YYYY-MM-DD").format("YYYY-MM-DD");
-
-    if (from > to) [from, to] = [to, from];
-
-    Organization.findByIdAndUpdate(
-      req.params.id,
-      {
-        $push: {
-          leaves: { from, to, userName },
-        },
-      },
-      (err) => {
-        if (err) throw err;
-      }
-    );
-
-    res.json({
-      data: true,
-    });
-  } catch (err) {
-    res.json({
-      error: "Error: Couldn't apply leave.",
-    });
-  }
-};
-
 module.exports = {
   createOrganization,
   getOrganizationsList,
@@ -152,5 +223,4 @@ module.exports = {
   getOrganization,
   updateOrganization,
   deleteOrganization,
-  createUserLeaves,
 };

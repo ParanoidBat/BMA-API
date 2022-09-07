@@ -7,6 +7,36 @@ const { remove } = require("lodash");
  * 1 is added to moment.diff() results to include the present in the calculations
  */
 
+/**
+ * @apiDefine Report
+ * @apiSuccess {Object[]} data Attendance List, containing 'date', 'timeIn', 'timeOut' and 'userName'
+ * @apiSuccess {Number} percentageAttendance Percentage of users that checked in
+ * @apiSuccess {Number} page Current pagination number
+ * @apiSuccess {Number} count Total attendances. ( Attendance objects )
+ * @apiSuccessExample {json} Success-Example:
+ * {
+ * data:
+ * [{
+ *   date: "2022-08-08",
+ *   timeIn: "07:02:56",
+ *   timeOut: "02:30:45",
+ *   userName: "Batman"
+ * }],
+ * percentageAttendance: 75,
+ * page: 1,
+ * count: 26
+ * }
+ */
+
+/**
+ * @api {get} /report/today/:id/ Get Today's Report
+ * @apiName TodayReport
+ * @apiGroup Report
+ *
+ * @apiParam id Organization's ID
+ * @apiSuccess {Object[]} data Attendance List, containing 'date', 'timeIn', 'timeOut' and 'userName'
+ * @apiSuccess {Number} percentageAttendance Percentage of users that have checked in
+ */
 const getTodayReport = async (req, res) => {
   try {
     const today = moment().format("YYYY-MM-DD");
@@ -48,6 +78,15 @@ const getTodayReport = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /report/weekly/:id/ Get Weekly Report
+ * @apiName WeeklyReport
+ * @apiGroup Report
+ *
+ * @apiParam {String} id Organization's ID
+ * @apiQuery {Number} page Page number for pagination. 10 results per page.
+ * @apiUse Report
+ */
 const getWeeklyReport = async (req, res) => {
   try {
     const { page } = req.query;
@@ -104,6 +143,15 @@ const getWeeklyReport = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /report/monthly/:id/ Get Monthly Report
+ * @apiName Monthly Report
+ * @apiGroup Report
+ *
+ * @apiParam {String} id Organization's ID
+ * @apiQuery {Number} page Page number for pagination. 10 results per page.
+ * @apiUse Report
+ */
 const getMonthlyReport = async (req, res) => {
   try {
     const { page } = req.query;
@@ -169,6 +217,15 @@ const getMonthlyReport = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /report/three/:id/ Get Three Month Report
+ * @apiName ThreeMonthReport
+ * @apiGroup Report
+ *
+ * @apiParam {String} id Organization's ID
+ * @apiQuery {Number} page Page number for pagination. 10 results per page.
+ * @apiUse Report
+ */
 const getThreeMonthsReport = async (req, res) => {
   try {
     const { page } = req.query;
@@ -239,6 +296,17 @@ const getThreeMonthsReport = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /report/user/:orgID/:userID/ Get User's Report
+ * @apiName UserReport
+ * @apiGroup Report
+ *
+ * @apiDescription NOTE: Unlike in example success response given, you won't receive the 'userName'
+ * @apiParam {String} orgID
+ * @apiParam {String} userID
+ * @apiQuery {Number} page 10 results per page
+ * @apiUse Report
+ */
 const getUserReport = async (req, res) => {
   try {
     const { page } = req.query;
@@ -303,6 +371,19 @@ const getUserReport = async (req, res) => {
   }
 };
 
+/**
+ * @api {post} /report/user/:orgID/:userID Get User's Report In A Range
+ * @apiName RangedUserReport
+ * @apiGroup Report
+ * @apiDescription NOTE: Unlike in example success response given, you won't receive the 'userName'
+ *
+ * @apiParam {String} orgID
+ * @apiParam {String} userID
+ * @apiQuery {Number} page 10 results per page
+ * @apiBody {String} from Range starting from. Format YYYY-MM-DD (2022-08-08)
+ * @apiBody {String} to Range uptill.
+ * @apiUse Report
+ */
 const getFilteredUserReport = async (req, res) => {
   try {
     var { from, to } = req.body;
@@ -377,6 +458,17 @@ const getFilteredUserReport = async (req, res) => {
   }
 };
 
+/**
+ * @api {post} /report/custom/:id Get Custom Report
+ * @apiName Custom Report
+ * @apiGroup Report
+ *
+ * @apiParam {String} id Organization's ID
+ * @apiQuery {Number} page 10 results per page
+ * @apiBody {String} from Date range starting from. Format YYYY-MM-DD
+ * @apiBody {String} to Date range uptill.
+ * @apiUse Report
+ */
 const getCustomReport = async (req, res) => {
   try {
     var { from, to } = req.body;

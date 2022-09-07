@@ -7,6 +7,32 @@ const moment = require("moment");
 const { findIndex, find } = require("lodash");
 const transporter = require("../mailTransporter");
 
+/**
+ * @apiDefine InternalSystem Internal Business Developer Access
+ * Only used in the internal system
+ */
+
+/**
+ * @apiDefine User
+ * @apiSuccess {Object} data User object
+ * @apiSuccessExample {json} Success-Example:
+ * {
+ * data:
+ * {
+ *   _id: "dsfge56tgrhtyt0"
+ *   name: "Batman",
+ *   authID: 0,
+ *   organizationID: "ft54657u6ythgf",
+ *   phone: "03451481947",
+ *   address: "19-B, Peshawar, Hawaii",
+ *   salary: 50000,
+ *   role: "Admin",
+ *   advance: 0,
+ *   leaves: []
+ * }
+ * }
+ */
+
 const calculateLeaves = (userLeaves, isSatOff, attendances) => {
   // Find holes in attendance, if a hole is accounted for in leaves; add into total leaves
   let leaves = 0;
@@ -43,6 +69,22 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
   return leaves;
 };
 
+/**
+ * @api {post} /user/ Create New User
+ * @apiName CreateUser
+ * @apiGroup User
+ *
+ * @apiBody {String} name User's name
+ * @apiBody {Number} authID User's finger ID as assigned by the BMA machine
+ * @apiBody {String} organizationID Organization's ID the user belongs to
+ * @apiBody {String} [email]
+ * @apiBody {String} password
+ * @apiBody {String} [phone]
+ * @apiBody {String} [address]
+ * @apiBody {Number} [salary=0]
+ * @apiBody {String="Worker", "Admin", "Manager"} [role="Worker"] User's role in the organization
+ * @apiUse User
+ */
 const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
@@ -77,6 +119,19 @@ const createUser = async (req, res) => {
   }
 };
 
+/**
+ * @api {put} /user/:id Update User
+ * @apiName UpdateUser
+ * @apiGroup User
+ *
+ * @apiParam {String} id User's id
+ * @apiBody {String} [name]
+ * @apiBody {String} [phone]
+ * @apiBody {String} [address]
+ * @apiBody {Number} [salary]
+ * @apiBody {String="Worker", "Admin", "Manager"} [role] User's role in the organization
+ * @apiUse User
+ */
 const updateUser = async (req, res) => {
   const { id } = req.params;
 
@@ -103,11 +158,25 @@ const updateUser = async (req, res) => {
   }
 };
 
+/**
+ * @api {put} /user/:authID/:orgID/ Update User With AuthID
+ * @apiName UpdateUserWithAuthID
+ * @apiGroup User
+ *
+ * @apiParam {Number} authID Finger ID as given by the BMA machine
+ * @apiParam {String} orgID
+ * @apiBody {String} [name]
+ * @apiBody {String} [phone]
+ * @apiBody {String} [address]
+ * @apiBody {Number} [salary]
+ * @apiBody {String="Worker", "Admin", "Manager"} [role] User's role in the organization
+ * @apiUse User
+ */
 const updateUserWithAuthID = async (req, res) => {
-  const { authID, organizationID } = req.params;
+  const { authID, orgID } = req.params;
   try {
     const user = await User.findOneAndUpdate(
-      { authID: authID, organizationID: organizationID },
+      { authID: authID, organizationID: orgID },
       req.body,
       {
         runValidators: true,
@@ -127,6 +196,14 @@ const updateUserWithAuthID = async (req, res) => {
   }
 };
 
+/**
+ * @api {delete} /user/:id/ Delete User
+ * @apiName DeleteUser
+ * @apiGroup User
+ *
+ * @apiParam {String} id User's ID
+ * @apiSuccess {Boolean} data { data: true }
+ */
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -143,6 +220,14 @@ const deleteUser = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /user/:id Get User
+ * @apiName GetUser
+ * @apiGroup User
+ *
+ * @apiParam {String} id
+ * @apiUse User
+ */
 const getUser = async (req, res) => {
   const { id } = req.params;
 
@@ -159,6 +244,17 @@ const getUser = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /user/ Get All Users List
+ * @apiName GetAllUsers
+ * @apiGroup User
+ * @apiPermission InternalSystem
+ * @apiDescription This returns all the users in the BMA system
+ *
+ * @apiQuery {Number} page
+ * @apiSuccess {Object[]} data Array of user objects: containing '_id', 'name' and 'organization'
+ * @apiSuccess {Number} page
+ */
 const getUsersList = async (req, res) => {
   try {
     const { page } = req.query;
@@ -181,6 +277,16 @@ const getUsersList = async (req, res) => {
   }
 };
 
+/**
+ * @api {get} /user/percent_attendance/:userID/:orgID Get User's Attendance Percentage
+ * @apiName UserPercentAttendance
+ * @apiGroup User
+ * @apiDescription The percentage is calculated for the current month
+ *
+ * @apiParam {String} userID
+ * @apiParam {String} orgID
+ * @apiSuccess {Number} data { data: 85 }
+ */
 const getPercentageAttendance = async (req, res) => {
   try {
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
@@ -244,6 +350,19 @@ const getPercentageAttendance = async (req, res) => {
   }
 };
 
+/**
+ * @api {post} /user/email Send Email
+ * @apiName Email
+ * @apiGroup User
+ * @apiPermission InternalSystem
+ *
+ * @apiBody {String} [subject] Subject of the email
+ * @apiBody {String} [text] Text body of the email
+ * @apiBody {String} to Receiving email address
+ *
+ * @apiSuccess {Boolean} data { data: true }
+ * @apiVersion 1.0.0
+ */
 const sendEmail = async (req, res) => {
   const { subject, text, to } = req.body;
 
