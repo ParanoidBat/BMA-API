@@ -6,6 +6,18 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
+/**
+ * @api {post} /login Login
+ * @apiName Login
+ * @apiGroup Auth
+ *
+ * @apiSuccess {Object} data Data containing token and user
+ * @apiSuccessExample Example data on success:
+ * {
+ * token: {String},
+ * user: {Object}
+ * }
+ */
 const login = async (req, res) => {
   const { email, password, phone } = req.body;
 

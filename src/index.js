@@ -1,6 +1,11 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
 const userRoutes = require("./routes/user");
 const attendanceRoutes = require("./routes/attendance");
@@ -10,10 +15,6 @@ const loginRoute = require("./routes/login");
 const leavesRoute = require("./routes/leavesRoutes");
 
 const authenticate = require("./middlewares/auth");
-
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
 
 const app = express();
 app.use(express.json());
@@ -35,6 +36,8 @@ app.use("/report", reportRoutes);
 app.use("/organization", organizationRoutes);
 app.use("/leave", leavesRoute);
 app.use("/login", loginRoute);
-
+app.get("/doc", (req, res) => {
+  return res.sendFile(path.join(__dirname, "../doc/index.html"));
+});
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Listening on ${port}`));
