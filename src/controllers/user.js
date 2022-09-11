@@ -88,7 +88,6 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
 const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
-
     await user.save();
 
     const credentials = new Credentials(req.body);
@@ -109,11 +108,11 @@ const createUser = async (req, res) => {
       }
     );
 
-    res.json({
+    return res.json({
       data: user,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't create user.",
     });
   }
@@ -136,23 +135,24 @@ const updateUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await User.findByIdAndUpdate(
+    User.findByIdAndUpdate(
       id,
       req.body,
       {
         runValidators: true,
         new: true,
       },
-      (err) => {
+      (err, user) => {
         if (err) throw err;
+        else {
+          return res.json({
+            data: user,
+          });
+        }
       }
     );
-
-    res.json({
-      data: user,
-    });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't update user.",
     });
   }
@@ -175,22 +175,23 @@ const updateUser = async (req, res) => {
 const updateUserWithAuthID = async (req, res) => {
   const { authID, orgID } = req.params;
   try {
-    const user = await User.findOneAndUpdate(
+    User.findOneAndUpdate(
       { authID: authID, organizationID: orgID },
       req.body,
       {
         runValidators: true,
       },
-      (err) => {
+      (err, user) => {
         if (err) throw err;
+        else {
+          return res.json({
+            data: user,
+          });
+        }
       }
     );
-
-    res.json({
-      data: user,
-    });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't update user.",
     });
   }
@@ -210,11 +211,11 @@ const deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(id);
 
-    res.json({
+    return res.json({
       data: true,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't delete user.",
     });
   }
@@ -234,9 +235,11 @@ const getUser = async (req, res) => {
   try {
     const user = await User.findById(id);
 
-    res.json({
-      data: user,
-    });
+    if (user) {
+      return res.json({
+        data: user,
+      });
+    } else throw "User Doesn't Exist";
   } catch (err) {
     res.status(500).json({
       error: "Error: Couldn't get user.",
@@ -266,12 +269,12 @@ const getUsersList = async (req, res) => {
       .limit(10)
       .skip((page - 1) * 10);
 
-    res.json({
+    return res.json({
       data: users,
       page,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't get users list.",
     });
   }
@@ -340,11 +343,11 @@ const getPercentageAttendance = async (req, res) => {
       percentageAttendance = Math.floor(((count + leaves) * 100) / workDays);
     }
 
-    res.json({
+    return res.json({
       data: percentageAttendance,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: `Error: Couldn't get user percentage attendance.`,
     });
   }

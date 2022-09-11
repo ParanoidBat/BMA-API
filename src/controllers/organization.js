@@ -39,7 +39,7 @@ const createOrganization = async (req, res) => {
       data: organization,
     });
   } catch (err) {
-    res.json({
+    return res.json({
       error: "Error: Couldn't create orgnaization.",
     });
   }
@@ -73,13 +73,12 @@ const getOrganizationsList = async (req, res) => {
       .limit(10)
       .skip((page - 1) * 10);
 
-    res.json({
+    return res.json({
       data: organizations,
       page,
     });
   } catch (err) {
-    console.log("err", err);
-    res.json({
+    return res.json({
       error: "Error: Couldn't retrieve organizations list.",
     });
   }
@@ -98,12 +97,12 @@ const getOrganization = async (req, res) => {
     const organization = await Organization.findById(req.params.id);
 
     if (organization != null) {
-      res.json({
+      return res.json({
         data: organization,
       });
     } else throw "Organization not found.";
   } catch (err) {
-    res.json({
+    return res.json({
       error: "Error: Couldn't get organization.",
     });
   }
@@ -122,11 +121,11 @@ const deleteOrganization = async (req, res) => {
   try {
     await Organization.findByIdAndDelete(req.params.id);
 
-    res.json({
+    return res.json({
       data: true,
     });
   } catch (err) {
-    res.json({
+    return res.json({
       error: "Error: Couldn't delete organization.",
     });
   }
@@ -149,15 +148,15 @@ const deleteOrganization = async (req, res) => {
  */
 const updateOrganization = async (req, res) => {
   try {
-    await Organization.findByIdAndUpdate(req.params.id, req.body, (err) => {
+    Organization.findByIdAndUpdate(req.params.id, req.body, (err) => {
       if (err) throw err;
     });
 
-    res.json({
+    return res.json({
       data: true,
     });
   } catch (err) {
-    res.json({
+    return res.json({
       error: "Error: Couldn't update organization.",
     });
   }
@@ -204,13 +203,13 @@ const getOrganizationUsersList = async (req, res) => {
       ).countDocuments(),
     ]);
 
-    res.json({
+    return res.json({
       data: users,
       page,
       count,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't get users list.",
     });
   }

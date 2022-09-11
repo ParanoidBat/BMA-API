@@ -38,19 +38,19 @@ const login = async (req, res) => {
         { expiresIn: "1h" }
       );
 
-      res.json({
+      return res.json({
         data: {
           token,
           user: credentials.user,
         },
       });
     } else {
-      res.json({
+      return res.json({
         error: "Credentials don't match.",
       });
     }
   } catch (err) {
-    res.json({
+    return res.json({
       error: "Credentials don't match",
     });
   }

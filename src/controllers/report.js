@@ -67,12 +67,12 @@ const getTodayReport = async (req, res) => {
     const percentageAttendance =
       (organization.dailyAttendance.length / organization.usersCount) * 100;
 
-    res.json({
+    return res.json({
       data: organization.dailyAttendance,
       percentageAttendance,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't generate daily report.",
     });
   }
@@ -130,14 +130,14 @@ const getWeeklyReport = async (req, res) => {
       );
     }
 
-    res.json({
+    return res.json({
       data: attendances,
       percentageAttendance,
       page,
       count,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't generate weekly report.",
     });
   }
@@ -204,14 +204,14 @@ const getMonthlyReport = async (req, res) => {
       );
     }
 
-    res.json({
+    return res.json({
       data: attendances,
       percentageAttendance,
       page,
       count,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't generate monthly report.",
     });
   }
@@ -283,14 +283,14 @@ const getThreeMonthsReport = async (req, res) => {
       );
     }
 
-    res.json({
+    return res.json({
       data: attendances,
       percentageAttendance,
       page,
       count,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't generate 3 months report.",
     });
   }
@@ -358,14 +358,14 @@ const getUserReport = async (req, res) => {
       percentageAttendance = Math.floor((count * 100) / workDays);
     }
 
-    res.json({
+    return res.json({
       data: attendances,
       percentageAttendance,
       page,
       count,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: `Error: Couldn't generate report for user.`,
     });
   }
@@ -445,14 +445,14 @@ const getFilteredUserReport = async (req, res) => {
       }
     }
 
-    res.json({
+    return res.json({
       data: attendances,
       percentageAttendance,
       page,
       count,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: `Error: Couldn't generate report for user.`,
     });
   }
@@ -532,14 +532,14 @@ const getCustomReport = async (req, res) => {
       }
     }
 
-    res.json({
+    return res.json({
       data: attendances,
       percentageAttendance,
       page,
       count,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Couldn't generate report.",
     });
   }

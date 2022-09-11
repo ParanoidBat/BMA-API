@@ -48,11 +48,11 @@ const checkin = async (req, res) => {
       }
     );
 
-    res.json({
+    return res.json({
       data: true,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error: Attendance couldn't be added.",
     });
   }
@@ -90,11 +90,11 @@ const checkout = async (req, res) => {
       await attendance.save();
     }
 
-    res.json({
+    return res.json({
       data: true,
     });
   } catch (err) {
-    res.json({
+    return res.json({
       error: "Couldn't checkout.",
     });
   }

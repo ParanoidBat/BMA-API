@@ -19,6 +19,7 @@ const User = require("../schemas/userSchema");
  * {
  * data:
  * [{
+ * _id: "sdfgerg435f4g"
  * userID: { _id, name },
  * orgID: "sdfds34refidkn23",
  * from: "2022-08-12",
@@ -70,7 +71,7 @@ const getUserRequests = async (req, res) => {
       data: requests,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Couldn't retrieve leave requests",
     });
   }
@@ -87,7 +88,20 @@ const getUserRequests = async (req, res) => {
  * @apiBody {String} to Last day of leave.
  * @apiBody {String="Pending", "Accepted", "Rejected"} [status="Pending"] Status of the new request. Omit from the body if the status is Pending
  *
- * @apiSuccess {Boolean} data { data: true }
+ * @apiSuccess {Object} data Request Object
+ * @apiSuccessExample {json} Success-Example:
+ * {
+ * data:
+ * [{
+ * _id: "sdfgerg435f4g"
+ * userID: { _id, name },
+ * orgID: "sdfds34refidkn23",
+ * from: "2022-08-12",
+ * to: "2022-08-15",
+ * status: "Pending",
+ * createdOn: "2022-08-11"
+ * }]
+ * }
  */
 const createRequest = async (req, res) => {
   try {
@@ -95,7 +109,7 @@ const createRequest = async (req, res) => {
     await request.save();
 
     return res.json({
-      data: true,
+      data: request,
     });
   } catch (err) {
     return res.status(500).json({
