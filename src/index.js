@@ -13,6 +13,7 @@ const reportRoutes = require("./routes/report");
 const organizationRoutes = require("./routes/organization");
 const loginRoute = require("./routes/login");
 const leavesRoute = require("./routes/leavesRoutes");
+const passwordRoutes = require("./routes/passwordRoutes");
 
 const authenticate = require("./middlewares/auth");
 
@@ -36,6 +37,7 @@ app.use("/report", reportRoutes);
 app.use("/organization", organizationRoutes);
 app.use("/leave", leavesRoute);
 app.use("/login", loginRoute);
+app.use("/password", passwordRoutes);
 app.use("/doc", express.static(path.join(__dirname, "../doc")));
 
 const port = process.env.PORT || 4000;
