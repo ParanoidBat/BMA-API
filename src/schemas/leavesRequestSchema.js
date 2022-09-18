@@ -20,6 +20,7 @@ const leavesRequestSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  reason: String,
   status: {
     type: String,
     enum: ["Pending", "Accepted", "Rejected"],

@@ -35,7 +35,7 @@ const { remove } = require("lodash");
  *
  * @apiParam id Organization's ID
  * @apiSuccess {Object[]} data Attendance List, containing 'date', 'timeIn', 'timeOut' and 'userName'
- * @apiSuccess {Number} percentageAttendance Percentage of users that have checked in
+ * @apiSuccess {String} totalAttendance Ratio of current attendance. Ex: 12/30
  */
 const getTodayReport = async (req, res) => {
   try {
@@ -64,12 +64,9 @@ const getTodayReport = async (req, res) => {
       );
     }
 
-    const percentageAttendance =
-      (organization.dailyAttendance.length / organization.usersCount) * 100;
-
     return res.json({
       data: organization.dailyAttendance,
-      percentageAttendance,
+      totalAttendance: `${organization.dailyAttendance.length}/${organization.usersCount}`,
     });
   } catch (err) {
     return res.status(500).json({
@@ -117,7 +114,7 @@ const getWeeklyReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
-      Organization.findById(req.params.id, "usersCount isSaturdayOff leaves"),
+      Organization.findById(req.params.id, "usersCount isSaturdayOff"),
     ]);
 
     if (attendances.length) {
@@ -182,7 +179,7 @@ const getMonthlyReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
-      Organization.findById(req.params.id, "usersCount isSaturdayOff leaves"),
+      Organization.findById(req.params.id, "usersCount isSaturdayOff"),
     ]);
 
     if (attendances.length) {
@@ -261,7 +258,7 @@ const getThreeMonthsReport = async (req, res) => {
         },
         "_id"
       ).countDocuments(),
-      Organization.findById(req.params.id, "usersCount isSaturdayOff leaves"),
+      Organization.findById(req.params.id, "usersCount isSaturdayOff"),
     ]);
 
     if (attendances.length) {

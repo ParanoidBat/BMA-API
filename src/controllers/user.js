@@ -296,8 +296,8 @@ const getPercentageAttendance = async (req, res) => {
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
 
-    const [userLeaves, attendances, count, organization] = await Promise.all([
-      User.findById(req.params.userID, "leaves"),
+    const [userLeaves, attendances, organization] = await Promise.all([
+      User.findById(req.params.userID, "leaves").populate("leaves", "from to"),
       Attendance.find(
         {
           userID: req.params.userID,
@@ -308,20 +308,10 @@ const getPercentageAttendance = async (req, res) => {
         },
         "date"
       ).sort({ date: 1 }),
-      Attendance.find(
-        {
-          userID: req.params.userID,
-          date: {
-            $gte: startOfMonth,
-            $lte: today,
-          },
-        },
-        "_id"
-      ).countDocuments(),
       Organization.findById(req.params.orgID, "isSaturdayOff"),
     ]);
 
-    if (count) {
+    if (attendances.length) {
       const diff = moment(today).diff(startOfMonth, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -340,7 +330,9 @@ const getPercentageAttendance = async (req, res) => {
         organization.isSaturdayOff,
         attendances
       );
-      percentageAttendance = Math.floor(((count + leaves) * 100) / workDays);
+      percentageAttendance = Math.floor(
+        ((attendances.length + leaves) * 100) / workDays
+      );
     }
 
     return res.json({

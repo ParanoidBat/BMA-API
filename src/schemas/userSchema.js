@@ -23,12 +23,10 @@ const userSchema = new mongoose.Schema({
     min: 0,
     default: 0,
   },
-  leaves: [
-    {
-      from: String,
-      to: String,
-    },
-  ],
+  leaves: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "LeavesRequest",
+  },
   advance: {
     type: Number,
     min: 0,

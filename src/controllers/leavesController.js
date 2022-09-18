@@ -139,10 +139,7 @@ const updateRequest = async (req, res) => {
     if (request.status === "Accepted") {
       await User.findByIdAndUpdate(request.userID, {
         $push: {
-          leaves: {
-            from: request.from,
-            to: request.to,
-          },
+          leaves: request,
         },
       });
     }

@@ -4,7 +4,6 @@ const credentialsSchema = new mongoose.Schema({
   email: {
     type: String,
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    unique: true,
     lowercase: true,
   },
   password: {
@@ -15,10 +14,7 @@ const credentialsSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  phone: {
-    type: String,
-    unique: true,
-  },
+  phone: String,
 });
 
 const Credentials = mongoose.model("Credentials", credentialsSchema);
