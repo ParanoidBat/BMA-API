@@ -65,7 +65,14 @@ const getUserRequests = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const requests = await LeavesRequest.find({ userID: id });
+    const user = await User.findById(id, "leaves");
+    if (!user) throw "User not found";
+
+    const requests = await LeavesRequest.find({
+      _id: {
+        $in: user.leaves,
+      },
+    });
 
     return res.json({
       data: requests,
