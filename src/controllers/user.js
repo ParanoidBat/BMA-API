@@ -5,7 +5,6 @@ const Attendance = require("../schemas/attendanceSchema");
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const { findIndex, find } = require("lodash");
-const transporter = require("../mailTransporter");
 
 /**
  * @apiDefine InternalSystem Internal Business Developer Access
@@ -369,14 +368,10 @@ const sendEmail = async (req, res) => {
   };
 
   try {
-    await transporter.sendMail(options);
-    transporter.close();
-
     return res.json({
       data: true,
     });
   } catch (error) {
-    transporter.close();
     return res.status(500).json({ error });
   }
 };

@@ -1,7 +1,6 @@
 const Credentials = require("../schemas/credentialsSchema");
 const OTP = require("../schemas/otpSchema");
 const otpGenerator = require("otp-generator");
-const transporter = require("../mailTransporter");
 
 /**
  * @api {post} /password/otp/generate/ Generate OTP
@@ -30,15 +29,12 @@ const generateOTP = async (req, res) => {
 
     await Promise.all([
       OTP.findOneAndUpdate({ email }, { otp }, { upsert: true }),
-      transporter.sendMail(emailOptions),
     ]);
 
-    transporter.close();
     return res.json({
       data: true,
     });
   } catch (error) {
-    transporter.close();
     return res.status(500).json({
       error,
     });
