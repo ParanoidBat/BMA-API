@@ -12,6 +12,7 @@ const attendanceRoutes = require("./routes/attendance");
 const reportRoutes = require("./routes/report");
 const organizationRoutes = require("./routes/organization");
 const loginRoute = require("./routes/login");
+const signupRoute = require("./routes/signup");
 const leavesRoute = require("./routes/leavesRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
 
@@ -37,6 +38,7 @@ app.use("/report", reportRoutes);
 app.use("/organization", organizationRoutes);
 app.use("/leave", leavesRoute);
 app.use("/login", loginRoute);
+app.use("/signup", signupRoute);
 app.use("/password", passwordRoutes);
 app.use("/doc", express.static(path.join(__dirname, "../doc")));
 
