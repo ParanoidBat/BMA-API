@@ -22,16 +22,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(process.env.DB_URL, {
-  useNewUrlParser: true,
-  useFindAndModify: false,
-  useUnifiedTopology: true,
-});
-
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "Connection Error"));
-db.once("open", () => console.log("DB Connected"));
-
 app.use("/user", userRoutes);
 app.use("/attendance", attendanceRoutes);
 app.use("/report", reportRoutes);

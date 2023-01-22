@@ -1,5 +1,6 @@
 const Organization = require("../schemas/organizationSchema");
 const User = require("../schemas/userSchema");
+const pool = require("../../database");
 
 /**
  * @apiDefine InternalSystem Internal Business Developer Access
@@ -31,12 +32,14 @@ const User = require("../schemas/userSchema");
  */
 const createOrganization = async (req, res) => {
   try {
-    const organization = new Organization(req.body);
+    var lel = await pool.query("INSERT INTO org VALUES($1)", ["testing"]);
+    console.log("lel", lel);
+    // const organization = new Organization(req.body);
 
-    await organization.save();
+    // await organization.save();
 
     return res.json({
-      data: organization,
+      data: "yaaay",
     });
   } catch (err) {
     return res.json({
