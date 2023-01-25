@@ -1,7 +1,4 @@
-const Attendance = require("../schemas/attendanceSchema");
-const User = require("../schemas/userSchema");
-const Organization = require("../schemas/organizationSchema");
-const moment = require("moment");
+const db = require("../../database");
 
 /**
  * @api {post} /attendance/ Check In
@@ -21,37 +18,44 @@ const moment = require("moment");
  * @apiSuccess {Boolean} data { data: true }
  */
 const checkin = async (req, res) => {
+  const { authID, organizationID, date, checkIn } = req.body;
+
   try {
-    const user = await User.findOne({
-      authID: req.body.authID,
-      organizationID: req.body.organizationID,
-    });
-    const attendance = new Attendance(req.body);
-
-    attendance.date = moment(attendance.date, "YYYY-MM-DD").format(
-      "YYYY-MM-DD"
+    const userRes = await db.query(
+      `SELECT id, name
+      FROM users
+      WHERE organization_id = $1
+      AND finger_id = $2`,
+      [organizationID, authID]
     );
-    attendance.userName = user.name;
-    attendance.userID = user._id;
-    attendance.uniqueAttendanceString = `${user._id}${attendance.date}`;
 
-    await attendance.save();
-    Organization.findByIdAndUpdate(
-      attendance.organizationID,
-      {
-        $push: {
-          dailyAttendance: attendance,
-        },
-      },
-      (err) => {
-        if (err) throw err;
-      }
+    if (!userRes.rowCount) {
+      throw "No such user";
+    }
+
+    const user = userRes.rows[0];
+
+    const uniqueAttendanceString = `${user.id}${date}`;
+
+    await db.query(
+      `INSERT INTO attendance(unique_attendance_string, date, finger_id, user_name, user_id, organization_id, check_in)
+      VALUES($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        uniqueAttendanceString,
+        date,
+        authID,
+        user.name,
+        user.id,
+        organizationID,
+        checkIn,
+      ]
     );
 
     return res.json({
       data: true,
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: "Error: Attendance couldn't be added.",
     });
@@ -72,23 +76,17 @@ const checkin = async (req, res) => {
  */
 const checkout = async (req, res) => {
   // Doesn't matter if checked out on same day or not.
-  try {
-    const attendance = await Attendance.findOneAndUpdate(
-      {
-        authID: req.body.authID,
-        date: {
-          $eq: moment(req.body.date, "YYYY-MM-DD").format("YYYY-MM-DD"),
-        },
-        organizationID: req.body.organizationID,
-      },
-      {
-        timeOut: req.body.timeOut,
-      }
-    );
+  const { authID, date, organizationID, checkOut } = req.body;
 
-    if (attendance != null) {
-      await attendance.save();
-    }
+  try {
+    await db.query(
+      `UPDATE attendance
+      SET check_out = $1
+      WHERE organization_id = $2
+      AND finger_id = $3
+      AND date = $4`,
+      [checkOut, organizationID, authID, date]
+    );
 
     return res.json({
       data: true,
