@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
   address TEXT,
   salary INTEGER CHECK (salary > 0) DEFAULT 0,
   leaves BIGINT[],
-  advance INTEGER CHECK(advance > 0) DEFAULT 0,
+  advance INTEGER DEFAULT 0,
   role role DEFAULT 'Worker'
 );
 CREATE INDEX user_id_org_idx ON users(id, organization_id);

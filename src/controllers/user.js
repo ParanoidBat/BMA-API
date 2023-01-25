@@ -1,10 +1,12 @@
 const User = require("../schemas/userSchema");
 const Organization = require("../schemas/organizationSchema");
-const Credentials = require("../schemas/credentialsSchema");
 const Attendance = require("../schemas/attendanceSchema");
+const db = require("../../database");
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const { findIndex, find } = require("lodash");
+
+// TODO: Do the attendance stuff after updating the Attendance API
 
 /**
  * @apiDefine InternalSystem Internal Business Developer Access
@@ -85,27 +87,48 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
  * @apiUse User
  */
 const createUser = async (req, res) => {
+  const fields = req.body;
+  // TODO: Default values are overriden by undefined, when a field doesn't exist. This can be fixed when making generic db query functions
   try {
-    const user = new User(req.body);
-    await user.save();
-
-    const credentials = new Credentials(req.body);
-    credentials.user = user;
-    credentials.password = await bcrypt.hash(credentials.password, 10);
-    await credentials.save();
-
-    Organization.findByIdAndUpdate(
-      user.organizationID,
-      {
-        $push: {
-          users: user._id,
-        },
-        $inc: { usersCount: user.role != "Admin" ? 1 : 0 },
-      },
-      (err) => {
-        if (err) throw err;
-      }
+    const response = await db.query(
+      `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, role)
+      VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        fields.name,
+        fields.finger_id,
+        fields.organization_id,
+        fields.phone,
+        fields.address,
+        fields.salary,
+        fields.role,
+      ]
     );
+
+    if (!response.rowCount) {
+      throw "User not made";
+    }
+
+    const user = response.rows[0];
+
+    const password = await bcrypt.hash(fields.password, 10);
+
+    const credsPromise = db.query(
+      `INSERT INTO credentials(email, password, user_id, phone)
+      VALUES($1, $2, $3, $4)
+      `,
+      [user.email, password, user.id, user.phone]
+    );
+
+    const orgPromise = db.query(
+      `UPDATE organization
+      SET
+      users = users || $1::INTEGER,
+      users_count = users_count + 1
+      WHERE id = $2`,
+      [user.id, user.organization_id]
+    );
+
+    await Promise.all([credsPromise, orgPromise]);
 
     return res.json({
       data: user,
@@ -132,24 +155,27 @@ const createUser = async (req, res) => {
  */
 const updateUser = async (req, res) => {
   const { id } = req.params;
+  const fields = req.body;
 
   try {
-    User.findByIdAndUpdate(
-      id,
-      req.body,
-      {
-        runValidators: true,
-        new: true,
-      },
-      (err, user) => {
-        if (err) throw err;
-        else {
-          return res.json({
-            data: user,
-          });
-        }
-      }
-    );
+    const updates = Object.entries(fields)
+      .map(([key, val]) => {
+        return `${key} = '${val}'`;
+      })
+      .join(",");
+
+    let response;
+    if (updates) {
+      response = await db.query(
+        `UPDATE users
+          SET ${updates}
+          WHERE id = $1
+          RETURNING *`,
+        [id]
+      );
+    }
+
+    return res.json({ data: response.rows[0] });
   } catch (err) {
     return res.status(500).json({
       error: "Error: Couldn't update user.",
@@ -173,22 +199,28 @@ const updateUser = async (req, res) => {
  */
 const updateUserWithAuthID = async (req, res) => {
   const { authID, orgID } = req.params;
+  const fields = req.body;
+
   try {
-    User.findOneAndUpdate(
-      { authID: authID, organizationID: orgID },
-      req.body,
-      {
-        runValidators: true,
-      },
-      (err, user) => {
-        if (err) throw err;
-        else {
-          return res.json({
-            data: user,
-          });
-        }
-      }
-    );
+    const updates = Object.entries(fields)
+      .map(([key, val]) => {
+        return `${key} = '${val}'`;
+      })
+      .join(",");
+
+    let response;
+    if (updates) {
+      response = await db.query(
+        `UPDATE users
+          SET ${updates}
+          WHERE finger_id = $1
+          AND organization_id = $2
+          RETURNING *`,
+        [authID, orgID]
+      );
+    }
+
+    return res.json({ data: response.rows[0] });
   } catch (err) {
     return res.status(500).json({
       error: "Error: Couldn't update user.",
@@ -208,7 +240,11 @@ const deleteUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await User.findByIdAndDelete(id);
+    await db.query(
+      `DELETE FROM users
+      WHERE id = $1`,
+      [id]
+    );
 
     return res.json({
       data: true,
@@ -232,11 +268,16 @@ const getUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await User.findById(id);
+    const response = await db.query(
+      `SELECT *
+      FROM users
+      WHERE id = $1`,
+      [id]
+    );
 
-    if (user) {
+    if (response.rowCount) {
       return res.json({
-        data: user,
+        data: response.rows[0],
       });
     } else throw "User Doesn't Exist";
   } catch (err) {
@@ -261,15 +302,17 @@ const getUsersList = async (req, res) => {
   try {
     const { page } = req.query;
 
-    const users = await User.find({}, "_id name organizationID")
-      .sort({
-        name: 1,
-      })
-      .limit(10)
-      .skip((page - 1) * 10);
+    const response = await db.query(
+      `SELECT id, name, organization_id
+      FROM users
+      ORDER BY name
+      LIMIT 10
+      OFFSET $1`,
+      [(page - 1) * 10]
+    );
 
     return res.json({
-      data: users,
+      data: response.rows,
       page,
     });
   } catch (err) {

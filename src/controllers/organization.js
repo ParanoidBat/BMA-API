@@ -1,5 +1,3 @@
-const Organization = require("../schemas/organizationSchema");
-const User = require("../schemas/userSchema");
 const db = require("../../database");
 
 /**
@@ -218,29 +216,36 @@ const updateOrganization = async (req, res) => {
  * }
  */
 const getOrganizationUsersList = async (req, res) => {
-  // TODO: When User's API has been updated. Update and test this function
   try {
     const { page } = req.query;
 
-    const [users, count] = await Promise.all([
-      User.find({ organizationID: req.params.id }, "_id name salary")
-        .sort({
-          name: 1,
-        })
-        .limit(10)
-        .skip((page - 1) * 10),
-      User.find(
-        {
-          organizationID: req.params.id,
-        },
-        "_id"
-      ).countDocuments(),
-    ]);
+    const totalUsersPromise = db.query(
+      `SELECT ARRAY_LENGTH(users, 1) AS count
+      FROM organization
+      WHERE id = $1`,
+      [req.params.id]
+    );
+
+    const usersPromise = db.query(
+      `SELECT id, name, salary
+      FROM users
+      WHERE id IN (
+        SELECT UNNEST(users)
+        FROM organization
+        WHERE id = $1
+      )
+      ORDER BY id
+      LIMIT 10
+      OFFSET $2`,
+      [req.params.id, (page - 1) * 10]
+    );
+
+    const [users, count] = await Promise.all([usersPromise, totalUsersPromise]);
 
     return res.json({
-      data: users,
+      data: users.rows,
       page,
-      count,
+      count: count.rows[0].count,
     });
   } catch (err) {
     return res.status(500).json({
