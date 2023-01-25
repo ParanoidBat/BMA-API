@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const { findIndex, find } = require("lodash");
 
-// TODO: Do the attendance stuff after updating the Attendance API
+// TODO: Do the attendance stuff after updating the Attendance and Report API
 
 /**
  * @apiDefine InternalSystem Internal Business Developer Access
@@ -387,38 +387,6 @@ const getPercentageAttendance = async (req, res) => {
   }
 };
 
-/**
- * @api {post} /user/email Send Email
- * @apiName Email
- * @apiGroup User
- * @apiPermission InternalSystem
- *
- * @apiBody {String} [subject] Subject of the email
- * @apiBody {String} [text] Text body of the email
- * @apiBody {String} to Receiving email address
- *
- * @apiSuccess {Boolean} data { data: true }
- * @apiVersion 1.0.0
- */
-const sendEmail = async (req, res) => {
-  const { subject, text, to } = req.body;
-
-  const options = {
-    from: "waynetech010@gmail.com",
-    to,
-    subject,
-    text,
-  };
-
-  try {
-    return res.json({
-      data: true,
-    });
-  } catch (error) {
-    return res.status(500).json({ error });
-  }
-};
-
 module.exports = {
   createUser,
   updateUser,
@@ -427,5 +395,4 @@ module.exports = {
   getUser,
   getUsersList,
   getPercentageAttendance,
-  sendEmail,
 };
