@@ -1,6 +1,6 @@
 const Organization = require("../schemas/organizationSchema");
 const User = require("../schemas/userSchema");
-const pool = require("../../database");
+const db = require("../../database");
 
 /**
  * @apiDefine InternalSystem Internal Business Developer Access
@@ -20,30 +20,31 @@ const pool = require("../../database");
  * @apiSuccess {Object} data The organization object
  * @apiSuccessExample {json} Success-Example:
  * {
- * _id: "dvfsge4t3rwfdgf",
- * name: "BMA",
- * address: "162, B3, Lake City, Lahore",
- * phone: "03451481947",
- * usersCount: 0,
- * isSaturdayOff: false,
- * users: [User],
- * dailyAttendance: [Attendance]
+ *  id: 7,
+ *  name: "BMA",
+ *  address: "162, B3, Lake City, Lahore",
+ *  phone: "03451481947",
+ *  usersCount: 0,
+ *  is_saturday_off: false,
+ *  users: null,
  * }
  */
 const createOrganization = async (req, res) => {
-  try {
-    var lel = await pool.query("INSERT INTO org VALUES($1)", ["testing"]);
-    console.log("lel", lel);
-    // const organization = new Organization(req.body);
+  const fields = req.body;
 
-    // await organization.save();
+  try {
+    let organization = await db.query(
+      `INSERT INTO organization(name, address, phone, email)
+      VALUES($1, $2, $3, $4) RETURNING *`,
+      [fields.name, fields.address, fields.phone, fields.email]
+    );
 
     return res.json({
-      data: "yaaay",
+      data: organization.rows[0],
     });
   } catch (err) {
     return res.json({
-      error: "Error: Couldn't create orgnaization.",
+      error: "Error: Couldn't create organization.",
     });
   }
 };
@@ -72,15 +73,21 @@ const getOrganizationsList = async (req, res) => {
   try {
     const { page } = req.query;
 
-    const organizations = await Organization.find({}, "_id name address")
-      .limit(10)
-      .skip((page - 1) * 10);
+    const organizations = await db.query(
+      `SELECT id, name, address
+      FROM organization
+      ORDER BY id
+      LIMIT 10
+      OFFSET $1`,
+      [(page - 1) * 10]
+    );
 
     return res.json({
-      data: organizations,
+      data: organizations.rows,
       page,
     });
   } catch (err) {
+    console.log(err);
     return res.json({
       error: "Error: Couldn't retrieve organizations list.",
     });
@@ -97,11 +104,17 @@ const getOrganizationsList = async (req, res) => {
  */
 const getOrganization = async (req, res) => {
   try {
-    const organization = await Organization.findById(req.params.id);
+    // const organization = await Organization.findById(req.params.id);
+    const organization = await db.query(
+      `SELECT *
+      FROM organization
+      WHERE id = $1`,
+      [req.params.id]
+    );
 
-    if (organization != null) {
+    if (organization.rowCount) {
       return res.json({
-        data: organization,
+        data: organization.rows[0],
       });
     } else throw "Organization not found.";
   } catch (err) {
@@ -122,10 +135,14 @@ const getOrganization = async (req, res) => {
  */
 const deleteOrganization = async (req, res) => {
   try {
-    await Organization.findByIdAndDelete(req.params.id);
+    const result = await db.query(
+      `DELETE FROM organization
+      WHERE id = $1`,
+      [req.params.id]
+    );
 
     return res.json({
-      data: true,
+      data: Boolean(result.rowCount),
     });
   } catch (err) {
     return res.json({
@@ -151,9 +168,22 @@ const deleteOrganization = async (req, res) => {
  */
 const updateOrganization = async (req, res) => {
   try {
-    Organization.findByIdAndUpdate(req.params.id, req.body, (err) => {
-      if (err) throw err;
-    });
+    const fields = req.body;
+
+    const updates = Object.entries(fields)
+      .map(([key, val]) => {
+        return `${key} = '${val}'`;
+      })
+      .join(",");
+
+    if (updates) {
+      await db.query(
+        `UPDATE organization
+        SET ${updates}
+        WHERE id = $1`,
+        [req.params.id]
+      );
+    }
 
     return res.json({
       data: true,
@@ -188,6 +218,7 @@ const updateOrganization = async (req, res) => {
  * }
  */
 const getOrganizationUsersList = async (req, res) => {
+  // TODO: When User's API has been updated. Update and test this function
   try {
     const { page } = req.query;
 
