@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS leave_request (
   from_date DATE NOT NULL,
   to_date DATE NOT NULL,
   reason TEXT,
-  status status DEFAULT 'Pending',
+  leave_status status DEFAULT 'Pending',
   createdOn DATE DEFAULT NOW()::date
 );
 CREATE INDEX leave_req_id_org_idx ON leave_request(id, organization_id);
@@ -63,9 +63,8 @@ CREATE TABLE IF NOT EXISTS users (
   phone TEXT,
   address TEXT,
   salary INTEGER CHECK (salary > 0) DEFAULT 0,
-  leaves BIGINT[],
   advance INTEGER DEFAULT 0,
-  role role DEFAULT 'Worker'
+  user_role role DEFAULT 'Worker'
 );
 CREATE INDEX user_id_org_idx ON users(id, organization_id);
 

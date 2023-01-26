@@ -1,5 +1,4 @@
-const LeavesRequest = require("../schemas/leavesRequestSchema");
-const User = require("../schemas/userSchema");
+const db = require("../../database");
 
 /**
  * @apiDefine InternalSystem Internal Business Developer Access
@@ -11,7 +10,7 @@ const User = require("../schemas/userSchema");
  * @apiName GetAllLeaves
  * @apiGroup Leaves
  *
- * @apiQuery {String} id Organization's ID
+ * @apiQuery {Number} id Organization's ID
  * @apiQuery {String="Pending", "Accepted", "Rejected"} [status] The status of the leave request
  *
  * @apiSuccess {Object[]} data Array of leave objects
@@ -19,9 +18,9 @@ const User = require("../schemas/userSchema");
  * {
  * data:
  * [{
- * _id: "sdfgerg435f4g"
- * userID: { _id, name },
- * orgID: "sdfds34refidkn23",
+ * _id: 1
+ * userID: 3,
+ * orgID: 4,
  * from: "2022-08-12",
  * to: "2022-08-15",
  * status: "Pending",
@@ -31,19 +30,34 @@ const User = require("../schemas/userSchema");
  */
 const getAllRequests = async (req, res) => {
   const { id, status } = req.query;
+
   try {
     let query;
-    if (status)
-      query = LeavesRequest.find({ orgID: id, status }).populate(
-        "userID",
-        "name"
-      );
-    else query = LeavesRequest.find({ orgID: id }).populate("userID", "name");
+    if (status) {
+      query = `SELECT name
+              FROM users u
+              WHERE EXISTS (
+                SELECT user_id
+                FROM leave_request
+                WHERE organization_id = ${id}
+                AND u.id = user_id
+                AND leave_status = ${status}
+              )`;
+    } else {
+      query = `SELECT name
+              FROM users u
+              WHERE EXISTS (
+                SELECT user_id
+                FROM leave_request
+                WHERE organization_id = ${id}
+                AND u.id = user_id
+              )`;
+    }
 
-    const requests = await query;
+    const requests = await db.query(query);
 
     return res.json({
-      data: requests,
+      data: requests.rows,
     });
   } catch (err) {
     return res.status(500).json({
@@ -57,18 +71,21 @@ const getAllRequests = async (req, res) => {
  * @apiName GetUser'sLeaves
  * @apiGroup Leaves
  *
- * @apiParam {String} id User's ID
+ * @apiParam {Number} id User's ID
  *
- * @apiSuccess {Object[]} data Array of leave objects (Same as from 'Get All Leaves', except: 'userID' is {String}, not {Object})
+ * @apiSuccess {Object[]} data Array of leave objects ( Same as from 'Get All Leaves' )
  */
 const getUserRequests = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const requests = await LeavesRequest.find({ userID: id });
+    const response = await db.query(
+      `SELECT *
+      FROM leave_request
+      WHERE user_id = $1`,
+      [req.params.id]
+    );
 
     return res.json({
-      data: requests,
+      data: response.rows,
     });
   } catch (error) {
     return res.status(500).json({
@@ -82,8 +99,8 @@ const getUserRequests = async (req, res) => {
  * @apiName NewRequest
  * @apiGroup Leaves
  *
- * @apiBody {String} userID
- * @apiBody {String} orgID
+ * @apiBody {Number} userID
+ * @apiBody {Number} orgID
  * @apiBody {String} from Leaves start from. Format: YYYY-MM-DD (2022-08-08). NOTE: Should be lower than 'to'
  * @apiBody {String} to Last day of leave.
  * @apiBody {String="Pending", "Accepted", "Rejected"} [status="Pending"] Status of the new request. Omit from the body if the status is Pending
@@ -93,25 +110,32 @@ const getUserRequests = async (req, res) => {
  * {
  * data:
  * [{
- * _id: "sdfgerg435f4g"
- * userID: { _id, name },
- * orgID: "sdfds34refidkn23",
+ * id: 1
+ * userID: 2,
+ * orgID: 3,
  * from: "2022-08-12",
  * to: "2022-08-15",
- * status: "Pending",
- * createdOn: "2022-08-11"
+ * leave_status: "Pending",
+ * created_on: "2022-08-11"
  * }]
  * }
  */
 const createRequest = async (req, res) => {
+  const { userID, orgID, from, to, reason } = req.body;
+
   try {
-    const request = new LeavesRequest(req.body);
-    await request.save();
+    const response = await db.query(
+      `INSERT INTO leave_request(user_id, organization_id, from_date, to_date, reason)
+      VALUES($1, $2, $3, $4, $5)
+      RETURNING *`,
+      [userID, orgID, from, to, reason]
+    );
 
     return res.json({
-      data: request,
+      data: response.rows[0],
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: "Error: Couldn't create request.",
     });
@@ -132,20 +156,16 @@ const updateRequest = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const request = await LeavesRequest.findByIdAndUpdate(id, req.body, {
-      new: true,
-    }).populate("userID", "name");
-
-    if (request.status === "Accepted") {
-      await User.findByIdAndUpdate(request.userID, {
-        $push: {
-          leaves: request,
-        },
-      });
-    }
+    const response = await db.query(
+      `UPDATE leave_request
+      SET leave_status = $1
+      WHERE id = $2
+      RETURNING *`,
+      [req.body.status, id]
+    );
 
     return res.json({
-      data: request,
+      data: response.rows[0],
     });
   } catch (err) {
     return res.status(500).json({
@@ -166,7 +186,11 @@ const deleteRequest = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await LeavesRequest.findByIdAndDelete(id);
+    await db.query(
+      `DELETE FROM leave_request
+      WHERE id = $1`,
+      [id]
+    );
 
     return res.json({
       data: true,

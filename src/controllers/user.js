@@ -27,7 +27,7 @@ const { findIndex, find } = require("lodash");
  *   phone: "03451481947",
  *   address: "19-B, Peshawar, Hawaii",
  *   salary: 50000,
- *   role: "Admin",
+ *   user_role: "Admin",
  *   advance: 0,
  *   leaves: []
  * }
@@ -83,7 +83,7 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
  * @apiBody {String} [phone]
  * @apiBody {String} [address]
  * @apiBody {Number} [salary=0]
- * @apiBody {String="Worker", "Admin", "Manager"} [role="Worker"] User's role in the organization
+ * @apiBody {String="Worker", "Admin", "Manager"} [user_role="Worker"] User's role in the organization
  * @apiUse User
  */
 const createUser = async (req, res) => {
@@ -91,7 +91,7 @@ const createUser = async (req, res) => {
   // TODO: Default values are overriden by undefined, when a field doesn't exist. This can be fixed when making generic db query functions
   try {
     const response = await db.query(
-      `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, role)
+      `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, user_role)
       VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [
         fields.name,
@@ -100,7 +100,7 @@ const createUser = async (req, res) => {
         fields.phone,
         fields.address,
         fields.salary,
-        fields.role,
+        fields.user_role,
       ]
     );
 
@@ -150,7 +150,7 @@ const createUser = async (req, res) => {
  * @apiBody {String} [phone]
  * @apiBody {String} [address]
  * @apiBody {Number} [salary]
- * @apiBody {String="Worker", "Admin", "Manager"} [role] User's role in the organization
+ * @apiBody {String="Worker", "Admin", "Manager"} [user_role] User's role in the organization
  * @apiUse User
  */
 const updateUser = async (req, res) => {
@@ -194,7 +194,7 @@ const updateUser = async (req, res) => {
  * @apiBody {String} [phone]
  * @apiBody {String} [address]
  * @apiBody {Number} [salary]
- * @apiBody {String="Worker", "Admin", "Manager"} [role] User's role in the organization
+ * @apiBody {String="Worker", "Admin", "Manager"} [user_role] User's role in the organization
  * @apiUse User
  */
 const updateUserWithAuthID = async (req, res) => {
