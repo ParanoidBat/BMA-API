@@ -116,7 +116,7 @@ const createUser = async (req, res) => {
       `INSERT INTO credentials(email, password, user_id, phone)
       VALUES($1, $2, $3, $4)
       `,
-      [user.email, password, user.id, user.phone]
+      [fields.email, password, user.id, user.phone]
     );
 
     const orgPromise = db.query(

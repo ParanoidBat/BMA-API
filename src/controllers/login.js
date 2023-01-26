@@ -1,10 +1,10 @@
-const Credentials = require("../schemas/credentialsSchema");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
+
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const db = require("../../database");
 
 /**
  * @api {post} /login Login
@@ -22,26 +22,38 @@ const login = async (req, res) => {
   const { email, password, phone } = req.body;
 
   try {
-    let query;
+    let condition;
     if (email) {
-      query = Credentials.findOne({ email }).populate("user");
+      condition = `email = '${email}'`;
     } else if (phone) {
-      query = Credentials.findOne({ phone }).populate("user");
+      condition = `phone = '${phone}'`;
     }
 
-    const credentials = await query;
+    const response = await db.query(
+      `SELECT *, c.password
+      FROM users, credentials c
+      WHERE id = (
+        SELECT user_id
+        FROM credentials
+        WHERE ${condition}
+      )`
+    );
+
+    const credentials = response.rows[0];
 
     if (credentials && (await bcrypt.compare(password, credentials.password))) {
       const token = jwt.sign(
-        { user_id: credentials.user._id, email },
+        { user_id: credentials.id, email },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
 
+      delete credentials.password;
+
       return res.json({
         data: {
           token,
-          user: credentials.user,
+          user: credentials,
         },
       });
     } else {
