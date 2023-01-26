@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS attendance (
   user_name TEXT NOT NULL,
   user_id INTEGER,
   organization_id INTEGER,
-  check_in DATE,
-  check_out DATE
+  check_in TEXT,
+  check_out TEXT
 );
 CREATE INDEX att_org_user_idx ON attendance(organization_id, user_id);
 
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS leave_request (
   leave_status status DEFAULT 'Pending',
   created_on DATE DEFAULT NOW()::date
 );
-CREATE INDEX leave_req_id_org_idx ON leave_request(id, organization_id);
+CREATE INDEX leave_req_id_org_user_idx ON leave_request(id, organization_id, user_id);
 
 CREATE TABLE IF NOT EXISTS otp (
   otp TEXT,
