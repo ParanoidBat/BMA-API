@@ -38,7 +38,7 @@ const checkin = async (req, res) => {
     const uniqueAttendanceString = `${user.id}${date}`;
 
     await db.query(
-      `INSERT INTO attendance(unique_attendance_string, date, finger_id, user_name, user_id, organization_id, check_in)
+      `INSERT INTO attendance(unique_attendance_string, created, finger_id, user_name, user_id, organization_id, check_in)
       VALUES($1, $2, $3, $4, $5, $6, $7)`,
       [
         uniqueAttendanceString,
@@ -84,7 +84,7 @@ const checkout = async (req, res) => {
       SET check_out = $1
       WHERE organization_id = $2
       AND finger_id = $3
-      AND date = $4`,
+      AND created = $4`,
       [checkOut, organizationID, authID, date]
     );
 

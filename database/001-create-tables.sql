@@ -15,7 +15,7 @@ CREATE INDEX org_id_name_idx ON organization(id, name);
 
 CREATE TABLE IF NOT EXISTS attendance (
   unique_attendance_string TEXT UNIQUE NOT NULL,
-  date DATE NOT NULL,
+  created DATE NOT NULL,
   finger_id INTEGER NOT NULL,
   user_name TEXT NOT NULL,
   user_id INTEGER,
