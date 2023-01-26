@@ -1,12 +1,7 @@
-const User = require("../schemas/userSchema");
-const Organization = require("../schemas/organizationSchema");
-const Attendance = require("../schemas/attendanceSchema");
 const db = require("../../database");
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const { findIndex, find } = require("lodash");
-
-// TODO: Do the attendance stuff after updating the Attendance and Report API
 
 /**
  * @apiDefine InternalSystem Internal Business Developer Access
@@ -47,16 +42,16 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
   if (index == -1) index = 0;
 
   attendances.forEach((obj) => {
-    const day = moment(obj.date, "YYYY-MM-DD").format("ddd");
+    const day = moment(obj.created).format("ddd");
 
     if (day !== days[index % workDays]) {
       const leave = find(userLeaves, (leaveObj) => {
         return (
-          moment(obj.date, "YYYY-MM-DD").isSameOrAfter(
-            moment(leaveObj.from, "YYYY-MM-DD")
+          moment(obj.created).isSameOrAfter(
+            moment(leaveObj.from_date, "YYYY-MM-DD")
           ) &&
-          moment(obj.date, "YYYY-MM-DD").isSameOrBefore(
-            moment(leaveObj.to, "YYYY-MM-DD")
+          moment(obj.created).isSameOrBefore(
+            moment(leaveObj.to_date, "YYYY-MM-DD")
           )
         );
       });
@@ -333,27 +328,43 @@ const getUsersList = async (req, res) => {
  * @apiSuccess {Number} data { data: 85 }
  */
 const getPercentageAttendance = async (req, res) => {
+  const { userID, orgID } = req.params;
+
   try {
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
 
-    const [userLeaves, attendances, organization] = await Promise.all([
-      User.findById(req.params.userID, "leaves").populate("leaves", "from to"),
-      Attendance.find(
-        {
-          userID: req.params.userID,
-          date: {
-            $gte: startOfMonth,
-            $lte: today,
-          },
-        },
-        "date"
-      ).sort({ date: 1 }),
-      Organization.findById(req.params.orgID, "isSaturdayOff"),
+    const leavesPromise = db.query(
+      `SELECT from_date, to_date
+      FROM leave_request
+      WHERE user_id = $1
+      AND leave_status = 'Accepted'`,
+      [userID]
+    );
+    const attendancePromise = db.query(
+      `SELECT created
+      FROM attendance
+      WHERE user_id = $1
+      AND created BETWEEN $2::date AND NOW()::date
+      ORDER BY created`,
+      [userID, startOfMonth]
+    );
+    const orgPromise = db.query(
+      `SELECT is_saturday_off
+      FROM organization
+      WHERE id = $1`,
+      [orgID]
+    );
+
+    const [leavesRes, attendanceRes, orgRes] = await Promise.all([
+      leavesPromise,
+      attendancePromise,
+      orgPromise,
     ]);
 
-    if (attendances.length) {
+    if (attendanceRes.rowCount) {
+      const organization = orgRes.rows[0];
       const diff = moment(today).diff(startOfMonth, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -362,18 +373,18 @@ const getPercentageAttendance = async (req, res) => {
       var workDays = diff - Math.floor(diff / 7);
       if (today.includes("Sun") || startOfMonth.includes("Sun")) workDays -= 1;
       if (
-        organization.isSaturdayOff &&
+        organization.is_saturday_off &&
         (today.includes("Sat") || startOfMonth.includes("Sat"))
       )
         workDays -= 1;
 
       const leaves = calculateLeaves(
-        userLeaves.leaves,
-        organization.isSaturdayOff,
-        attendances
+        leavesRes.rows,
+        organization.is_saturday_off,
+        attendanceRes.rows
       );
       percentageAttendance = Math.floor(
-        ((attendances.length + leaves) * 100) / workDays
+        ((attendanceRes.rowCount + leaves) * 100) / workDays
       );
     }
 
