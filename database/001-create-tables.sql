@@ -49,7 +49,7 @@ CREATE INDEX leave_req_id_org_idx ON leave_request(id, organization_id);
 
 CREATE TABLE IF NOT EXISTS otp (
   otp TEXT,
-  created DATE DEFAULT NOW()::date,
+  created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
   email TEXT UNIQUE
 );
 CREATE INDEX otp_otp_idx ON otp(otp);

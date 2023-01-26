@@ -1,6 +1,6 @@
-const Credentials = require("../schemas/credentialsSchema");
-const OTP = require("../schemas/otpSchema");
+const db = require("../../database");
 const otpGenerator = require("otp-generator");
+const bcrypt = require("bcryptjs");
 
 /**
  * @api {post} /password/otp/generate/ Generate OTP
@@ -18,18 +18,13 @@ const generateOTP = async (req, res) => {
       specialChars: false,
     });
 
-    const emailBody = `Your password reset request OTP is: ${otp}\nIt will expire in 2 minutes.`;
-
-    const emailOptions = {
-      from: "waynetech010@gmail.com",
-      to: email,
-      subject: "Password Reset OTP",
-      text: emailBody,
-    };
-
-    await Promise.all([
-      OTP.findOneAndUpdate({ email }, { otp }, { upsert: true }),
-    ]);
+    await db.query(
+      `INSERT INTO otp(email, otp)
+      VALUES($1, $2)
+      ON CONFLICT email
+      DO UPDATE SET otp = EXCLUDED.otp`,
+      [email, otp]
+    );
 
     return res.json({
       data: true,
@@ -53,19 +48,19 @@ const generateOTP = async (req, res) => {
  */
 const verifyOTP = async (req, res) => {
   const { otp, email } = req.body;
-  let isCorrect = true;
 
   try {
-    const otpObject = await OTP.findOne({ otp, email });
-    if (!otpObject) throw "Invalid OTP";
-
-    const ttl = 2 * 60 * 1000; // 2 minutes
-    if (Date.now() - otpObject.created >= ttl) isCorrect = false;
-
-    await OTP.findOneAndDelete({ email });
+    const otpRes = await db.query(
+      `SELECT true AS exist
+      FROM otp
+      WHERE otp = $1
+      AND email = $2
+      AND NOW() - created >= INTERVAL '2 minutes'`,
+      [otp, email]
+    );
 
     return res.json({
-      data: isCorrect,
+      data: Boolean(otpRes.rowCount),
     });
   } catch (error) {
     return res.json({
@@ -88,8 +83,15 @@ const verifyOTP = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { email, password } = req.body;
 
+  const passwordHash = await bcrypt.hash(password, 10);
+
   try {
-    await Credentials.findOneAndUpdate({ email }, { password });
+    await db.query(
+      `UPDATE credentials
+      SET password = $1
+      WHERE email = $2`,
+      [passwordHash, email]
+    );
 
     return res.json({
       data: true,
