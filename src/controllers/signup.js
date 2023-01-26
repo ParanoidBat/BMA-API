@@ -1,6 +1,4 @@
-const Organization = require("../schemas/organizationSchema");
-const User = require("../schemas/userSchema");
-const Credentials = require("../schemas/credentialsSchema");
+const db = require("../../database");
 const bcrypt = require("bcryptjs");
 
 /**
@@ -27,28 +25,51 @@ const bcrypt = require("bcryptjs");
  * }
  */
 const signup = async (req, res) => {
-  const { orgName, orgAddress, orgPhone, orgEmail } = req.body;
+  const fields = req.body;
+
   try {
-    const organization = new Organization({
-      name: orgName,
-      address: orgAddress,
-      phone: orgPhone,
-      email: orgEmail,
-    });
-    await organization.save();
+    const organizationRes = await db.query(
+      `INSERT INTO organization(name, address, phone, email)
+      VALUES($1, $2, $3, $4) RETURNING id`,
+      [fields.orgName, fields.orgAddress, fields.orgPhone, fields.orgEmail]
+    );
+    if (!organizationRes.rowCount) {
+      throw "Organization not made";
+    }
 
-    const user = new User(req.body);
-    user.organizationID = organization._id;
-    await user.save();
+    const userRes = await db.query(
+      `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, user_role)
+      VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [
+        fields.name,
+        fields.finger_id,
+        organizationRes.rows[0].id,
+        fields.phone,
+        fields.address,
+        fields.salary,
+        fields.user_role,
+      ]
+    );
+    if (!userRes.rowCount) {
+      await db.query(
+        `DELETE FROM organization
+        WHERE id = $1`,
+        [organizationRes.rows[0].id]
+      );
 
-    const credentials = new Credentials(req.body);
-    credentials.user = user;
-    credentials.password = await bcrypt.hash(credentials.password, 10);
+      throw "User not made";
+    }
 
-    await credentials.save();
+    const password = await bcrypt.hash(fields.password, 10);
+
+    await db.query(
+      `INSERT INTO credentials(email, password, user_id, phone)
+      VALUES($1, $2, $3, $4)`,
+      [fields.email, password, userRes.rows[0].id, fields.phone]
+    );
 
     return res.json({
-      data: { userID: user._id, orgID: organization._id },
+      data: { userID: userRes.rows[0].id, orgID: organizationRes.rows[0].id },
     });
   } catch (err) {
     return res.json({

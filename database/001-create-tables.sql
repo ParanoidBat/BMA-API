@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS organization (
   users_count INTEGER DEFAULT 0,
   is_saturday_off BOOLEAN DEFAULT FALSE,
   users INTEGER[]
+  created_on DATE DEFAULT NOW()::date
 );
 CREATE INDEX org_id_name_idx ON organization(id, name);
 
@@ -42,7 +43,7 @@ CREATE TABLE IF NOT EXISTS leave_request (
   to_date DATE NOT NULL,
   reason TEXT,
   leave_status status DEFAULT 'Pending',
-  createdOn DATE DEFAULT NOW()::date
+  created_on DATE DEFAULT NOW()::date
 );
 CREATE INDEX leave_req_id_org_idx ON leave_request(id, organization_id);
 

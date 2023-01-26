@@ -31,7 +31,7 @@ const createOrganization = async (req, res) => {
   const fields = req.body;
 
   try {
-    let organization = await db.query(
+    const organization = await db.query(
       `INSERT INTO organization(name, address, phone, email)
       VALUES($1, $2, $3, $4) RETURNING *`,
       [fields.name, fields.address, fields.phone, fields.email]
