@@ -7,7 +7,7 @@ const db = require("../../database");
 
 /**
  * @apiDefine Report
- * @apiSuccess {Object[]} data Attendance List, containing 'date', 'timeIn', 'timeOut' and 'userName'
+ * @apiSuccess {Object[]} data
  * @apiSuccess {Number} percentageAttendance Percentage of users that checked in
  * @apiSuccess {Number} page Current pagination number
  * @apiSuccess {Number} count Total attendances. ( Attendance objects )
@@ -15,10 +15,10 @@ const db = require("../../database");
  * {
  * data:
  * [{
- *   date: "2022-08-08",
- *   timeIn: "07:02:56",
- *   timeOut: "02:30:45",
- *   userName: "Batman"
+ *   created: "2022-08-08",
+ *   check_in: "07:02:56",
+ *   check_out: "02:30:45",
+ *   user_name: "Batman"
  * }],
  * percentageAttendance: 75,
  * page: 1,
@@ -62,7 +62,7 @@ const getReportsQueryPromises = (startDate, id, page) => {
  * @apiGroup Report
  *
  * @apiParam id Organization's ID
- * @apiSuccess {Object[]} data Attendance List, containing 'date', 'timeIn', 'timeOut' and 'userName'
+ * @apiSuccess {Object[]} data Attendance List, containing 'created', 'check_in', 'check_out' and 'user_name'
  * @apiSuccess {String} totalAttendance Ratio of current attendance. Ex: 12/30
  */
 const getTodayReport = async (req, res) => {
