@@ -18,13 +18,15 @@ const db = require("../../database");
  * {
  * data:
  * [{
- * _id: 1
- * userID: 3,
- * orgID: 4,
- * from: "2022-08-12",
- * to: "2022-08-15",
+ * id: 1
+ * user_id: 3,
+ * organization_id: 4,
+ * from_date: "2022-08-12",
+ * to_date: "2022-08-15",
  * status: "Pending",
- * createdOn: "2022-08-11"
+ * created_on: "2022-08-11",
+ * name: "Batman",
+ * reason: "Out of Gotham"
  * }]
  * }
  */
@@ -103,12 +105,13 @@ const getUserRequests = async (req, res) => {
  * data:
  * [{
  * id: 1
- * userID: 2,
- * orgID: 3,
- * from: "2022-08-12",
- * to: "2022-08-15",
+ * user_id: 2,
+ * organization_id: 3,
+ * from_date: "2022-08-12",
+ * to_date: "2022-08-15",
  * leave_status: "Pending",
- * created_on: "2022-08-11"
+ * created_on: "2022-08-11",
+ * reason: "Out sick"
  * }]
  * }
  */
