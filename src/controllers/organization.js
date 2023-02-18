@@ -22,9 +22,10 @@ const db = require("../../database");
  *  name: "BMA",
  *  address: "162, B3, Lake City, Lahore",
  *  phone: "03451481947",
- *  usersCount: 0,
+ *  users_count: 0,
  *  is_saturday_off: false,
  *  users: null,
+ *  created_on: "2023-02-01"
  * }
  */
 const createOrganization = async (req, res) => {
@@ -60,7 +61,7 @@ const createOrganization = async (req, res) => {
  * {
  * data:
  * [{
- *   _id: "dfg34t45tgfdy5",
+ *   id: 5,
  *   name: "BMA",
  *   address: "162, B3, Lake City, Lahore"
  * }],
@@ -159,7 +160,7 @@ const deleteOrganization = async (req, res) => {
  * @apiBody {String} address
  * @apiBody {String} phone
  * @apiBody {String} email
- * @apiBody {String} isSaturdayOff
+ * @apiBody {String} is_saturday_off
  * @apiSuccess {Boolean} data { data: true }
  *
  * @apiVersion 1.0.0
@@ -207,7 +208,7 @@ const updateOrganization = async (req, res) => {
  * {
  * data:
  * [{
- *   _id,
+ *   id,
  *   name,
  *   salary
  * }],
