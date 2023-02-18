@@ -55,7 +55,6 @@ const checkin = async (req, res) => {
       data: true,
     });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({
       error: "Error: Attendance couldn't be added.",
     });

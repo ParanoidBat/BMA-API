@@ -34,24 +34,16 @@ const getAllRequests = async (req, res) => {
   try {
     let query;
     if (status) {
-      query = `SELECT name
-              FROM users u
-              WHERE EXISTS (
-                SELECT user_id
-                FROM leave_request
-                WHERE organization_id = ${id}
-                AND u.id = user_id
-                AND leave_status = ${status}
-              )`;
+      query = `SELECT r.*, u.name
+              FROM leave_request r
+              JOIN users u ON r.organization_id = ${id}
+                AND r.user_id = u.id
+                AND leave_status = '${status}'`;
     } else {
-      query = `SELECT name
-              FROM users u
-              WHERE EXISTS (
-                SELECT user_id
-                FROM leave_request
-                WHERE organization_id = ${id}
-                AND u.id = user_id
-              )`;
+      query = `SELECT r.*, u.name
+      FROM leave_request r
+      JOIN users u ON r.organization_id = ${id}
+        AND r.user_id = u.id`;
     }
 
     const requests = await db.query(query);
