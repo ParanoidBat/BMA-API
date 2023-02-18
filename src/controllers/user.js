@@ -15,16 +15,15 @@ const { findIndex, find } = require("lodash");
  * {
  * data:
  * {
- *   _id: "dsfge56tgrhtyt0"
+ *   id: 5,
  *   name: "Batman",
- *   authID: 0,
- *   organizationID: "ft54657u6ythgf",
+ *   finger_id: 0,
+ *   organization_id: 5,
  *   phone: "03451481947",
  *   address: "19-B, Peshawar, Hawaii",
  *   salary: 50000,
  *   user_role: "Admin",
  *   advance: 0,
- *   leaves: []
  * }
  * }
  */
@@ -290,7 +289,7 @@ const getUser = async (req, res) => {
  * @apiDescription This returns all the users in the BMA system
  *
  * @apiQuery {Number} page
- * @apiSuccess {Object[]} data Array of user objects: containing '_id', 'name' and 'organization'
+ * @apiSuccess {Object[]} data Array of user objects: containing 'id', 'name' and 'organization_id'
  * @apiSuccess {Number} page
  */
 const getUsersList = async (req, res) => {

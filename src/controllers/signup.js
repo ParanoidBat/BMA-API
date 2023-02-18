@@ -19,8 +19,8 @@ const bcrypt = require("bcryptjs");
  * @apiSuccess {Object} data
  * @apiSuccessExample {json} Success-Example:
  * {data:{
- *   userID: "dsfsven324n",
- *   orgID: "afdshui3984y02"
+ *   userID: 5,
+ *   orgID: 4
  *   }
  * }
  */
