@@ -5,10 +5,10 @@ const db = require("../../database");
  * @apiName CheckIn
  * @apiGroup Attendance
  *
- * @apiBody {Number} authID User's finger ID
- * @apiBody {String} organizationID Organization's ID the user belongs to
+ * @apiBody {Number} finger_id User's finger ID
+ * @apiBody {String} organization_id Organization's ID the user belongs to
  * @apiBody {String} date Date of the checkin. Format: YYYY-MM-DD
- * @apiBody {String} timeIn The checkin time. Format: hh:mm:ss
+ * @apiBody {String} check_in The checkin time. Format: hh:mm:ss
  *
  * @apiDescription
  * Examples on date and time:
@@ -18,7 +18,7 @@ const db = require("../../database");
  * @apiSuccess {Boolean} data { data: true }
  */
 const checkin = async (req, res) => {
-  const { authID, organizationID, date, checkIn } = req.body;
+  const { finger_id, organization_id, date, check_in } = req.body;
 
   try {
     const userRes = await db.query(
@@ -26,7 +26,7 @@ const checkin = async (req, res) => {
       FROM users
       WHERE organization_id = $1
       AND finger_id = $2`,
-      [organizationID, authID]
+      [organization_id, finger_id]
     );
 
     if (!userRes.rowCount) {
@@ -43,11 +43,11 @@ const checkin = async (req, res) => {
       [
         uniqueAttendanceString,
         date,
-        authID,
+        finger_id,
         user.name,
         user.id,
-        organizationID,
-        checkIn,
+        organization_id,
+        check_in,
       ]
     );
 
@@ -55,6 +55,7 @@ const checkin = async (req, res) => {
       data: true,
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: "Error: Attendance couldn't be added.",
     });
