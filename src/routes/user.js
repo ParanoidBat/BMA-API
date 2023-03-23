@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.route("/").get(getUsersList).post(createUser);
 router.route("/:id").get(getUser).put(updateUser).delete(deleteUser);
-router.route("/:authID/:orgID").put(updateUserWithAuthID);
+router.route("/:fingerID/:orgID").put(updateUserWithAuthID);
 router.route("/percent_attendance/:userID/:orgID").get(getPercentageAttendance);
 
 module.exports = router;

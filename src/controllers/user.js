@@ -69,9 +69,11 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
  * @apiName CreateUser
  * @apiGroup User
  *
+ * @apiDescription Requires either email or phone
+ *
  * @apiBody {String} name User's name
- * @apiBody {Number} authID User's finger ID as assigned by the BMA machine
- * @apiBody {String} organizationID Organization's ID the user belongs to
+ * @apiBody {Number} finger_id User's finger ID as assigned by the BMA machine
+ * @apiBody {String} organization_id Organization's ID the user belongs to
  * @apiBody {String} [email]
  * @apiBody {String} password
  * @apiBody {String} [phone]
@@ -104,16 +106,17 @@ const createUser = async (req, res) => {
 
     const user = response.rows[0];
 
-    const password = await bcrypt.hash(fields.password, 10);
+    if (fields.password) {
+      const password = await bcrypt.hash(fields.password, 10);
+      await db.query(
+        `INSERT INTO credentials(email, password, user_id, phone)
+        VALUES($1, $2, $3, $4)
+        `,
+        [fields.email, password, user.id, user.phone]
+      );
+    }
 
-    const credsPromise = db.query(
-      `INSERT INTO credentials(email, password, user_id, phone)
-      VALUES($1, $2, $3, $4)
-      `,
-      [fields.email, password, user.id, user.phone]
-    );
-
-    const orgPromise = db.query(
+    await db.query(
       `UPDATE organization
       SET
       users = users || $1::INTEGER,
@@ -122,12 +125,11 @@ const createUser = async (req, res) => {
       [user.id, user.organization_id]
     );
 
-    await Promise.all([credsPromise, orgPromise]);
-
     return res.json({
       data: user,
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: "Error: Couldn't create user.",
     });
@@ -178,44 +180,62 @@ const updateUser = async (req, res) => {
 };
 
 /**
- * @api {put} /user/:authID/:orgID/ Update User With AuthID
+ * @api {put} /user/:fingerID/:orgID/ Update User With AuthID
  * @apiName UpdateUserWithAuthID
  * @apiGroup User
+ * @apiDescription This endpoint is used exclusively for updating the user, after creating it from BMA machine.
  *
- * @apiParam {Number} authID Finger ID as given by the BMA machine
+ * @apiParam {Number} fingerID Finger ID as given by the BMA machine
  * @apiParam {String} orgID
- * @apiBody {String} [name]
- * @apiBody {String} [phone]
+ * @apiBody {String} name
+ * @apiBody {String} phone
+ * @apiBody {String} [email]
+ * @apiBody {String} password
  * @apiBody {String} [address]
  * @apiBody {Number} [salary]
  * @apiBody {String="Worker", "Admin", "Manager"} [user_role] User's role in the organization
  * @apiUse User
  */
 const updateUserWithAuthID = async (req, res) => {
-  const { authID, orgID } = req.params;
+  const { fingerID, orgID } = req.params;
   const fields = req.body;
+  const { email, password } = fields;
+
+  delete fields.email;
+  delete fields.password;
 
   try {
+    let user;
     const updates = Object.entries(fields)
       .map(([key, val]) => {
         return `${key} = '${val}'`;
       })
       .join(",");
 
-    let response;
     if (updates) {
-      response = await db.query(
+      const response = await db.query(
         `UPDATE users
           SET ${updates}
           WHERE finger_id = $1
           AND organization_id = $2
           RETURNING *`,
-        [authID, orgID]
+        [fingerID, orgID]
+      );
+
+      user = response.rows[0];
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await db.query(
+        `INSERT INTO credentials(email, password, user_id, phone)
+        VALUES($1, $2, $3, $4)
+        `,
+        [email, hashedPassword, user.id, fields.phone]
       );
     }
 
-    return res.json({ data: response.rows[0] });
+    return res.json({ data: user });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: "Error: Couldn't update user.",
     });
@@ -275,6 +295,7 @@ const getUser = async (req, res) => {
       });
     } else throw "User Doesn't Exist";
   } catch (err) {
+    console.error(err);
     res.status(500).json({
       error: "Error: Couldn't get user.",
     });
@@ -391,6 +412,7 @@ const getPercentageAttendance = async (req, res) => {
       data: percentageAttendance,
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: `Error: Couldn't get user percentage attendance.`,
     });

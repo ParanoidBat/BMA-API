@@ -235,6 +235,7 @@ const getOrganizationUsersList = async (req, res) => {
         FROM organization
         WHERE id = $1
       )
+      AND name != 'dummy'
       ORDER BY id
       LIMIT 10
       OFFSET $2`,

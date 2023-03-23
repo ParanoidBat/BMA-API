@@ -9,6 +9,7 @@ const bcrypt = require("bcryptjs");
  * @apiBody {String} name User's name
  * @apiBody {String} [phone] User's phone
  * @apiBody {String} [address] User's address
+ * @apiBody {Number} finger_id User's finger id, as displayed on the finger scanner device
  * @apiBody {String} email User's email
  * @apiBody {String} password User's account password
  * @apiBody {String} orgName Organization's name
@@ -26,16 +27,14 @@ const bcrypt = require("bcryptjs");
  */
 const signup = async (req, res) => {
   const fields = req.body;
+  let organizationRes;
 
   try {
-    const organizationRes = await db.query(
+    organizationRes = await db.query(
       `INSERT INTO organization(name, address, phone, email)
       VALUES($1, $2, $3, $4) RETURNING id`,
       [fields.orgName, fields.orgAddress, fields.orgPhone, fields.orgEmail]
     );
-    if (!organizationRes.rowCount) {
-      throw "Organization not made";
-    }
 
     const userRes = await db.query(
       `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, user_role)
@@ -50,15 +49,6 @@ const signup = async (req, res) => {
         fields.user_role,
       ]
     );
-    if (!userRes.rowCount) {
-      await db.query(
-        `DELETE FROM organization
-        WHERE id = $1`,
-        [organizationRes.rows[0].id]
-      );
-
-      throw "User not made";
-    }
 
     const password = await bcrypt.hash(fields.password, 10);
 
@@ -72,6 +62,16 @@ const signup = async (req, res) => {
       data: { userID: userRes.rows[0].id, orgID: organizationRes.rows[0].id },
     });
   } catch (err) {
+    console.error(err);
+
+    if (organizationRes) {
+      await db.query(
+        `DELETE FROM organization
+        WHERE id = $1`,
+        [organizationRes.rows[0].id]
+      );
+    }
+
     return res.json({
       error: "Couldn't signup",
     });

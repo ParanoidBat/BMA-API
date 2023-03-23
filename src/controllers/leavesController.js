@@ -23,7 +23,7 @@ const db = require("../../database");
  * organization_id: 4,
  * from_date: "2022-08-12",
  * to_date: "2022-08-15",
- * status: "Pending",
+ * leave_status: "Pending",
  * created_on: "2022-08-11",
  * name: "Batman",
  * reason: "Out of Gotham"
@@ -54,6 +54,7 @@ const getAllRequests = async (req, res) => {
       data: requests.rows,
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: "Error: Couldn't retrieve requests.",
     });
@@ -97,7 +98,7 @@ const getUserRequests = async (req, res) => {
  * @apiBody {Number} orgID
  * @apiBody {String} from Leaves start from. Format: YYYY-MM-DD (2022-08-08). NOTE: Should be lower than 'to'
  * @apiBody {String} to Last day of leave.
- * @apiBody {String="Pending", "Accepted", "Rejected"} [status="Pending"] Status of the new request. Omit from the body if the status is Pending
+ * @apiBody {String} [reason] A description of the reason of leave
  *
  * @apiSuccess {Object} data Request Object
  * @apiSuccessExample {json} Success-Example:

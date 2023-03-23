@@ -11,6 +11,12 @@ const db = require("../../database");
  * @apiName Login
  * @apiGroup Auth
  *
+ * @apiDescription Requires either email or phone
+ *
+ * @apiBody {String} [email]
+ * @apiBody {String} [phone]
+ * @apiBody {String} password
+ *
  * @apiSuccess {Object} data Data containing token and user
  * @apiSuccessExample {json} Success-Example:
  * {

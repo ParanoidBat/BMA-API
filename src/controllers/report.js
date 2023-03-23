@@ -393,7 +393,7 @@ const getFilteredUserReport = async (req, res) => {
     if (moment(from).isAfter(to)) [from, to] = [to, from];
 
     const reportPromise = db.query(
-      `SELECT created, check_in, check_out
+      `SELECT created, check_in, check_out, unique_attendance_string AS uas
       FROM attendance
       WHERE user_id = $1
       AND created BETWEEN $2::date AND $3::date
@@ -454,6 +454,7 @@ const getFilteredUserReport = async (req, res) => {
       count,
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       error: `Error: Couldn't generate report for user.`,
     });
