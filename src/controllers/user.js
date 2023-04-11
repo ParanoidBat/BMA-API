@@ -164,9 +164,9 @@ const updateUser = async (req, res) => {
     if (updates) {
       response = await db.query(
         `UPDATE users
-          SET ${updates}
-          WHERE id = $1
-          RETURNING *`,
+        SET ${updates}
+        WHERE id = $1
+        RETURNING *`,
         [id]
       );
     }

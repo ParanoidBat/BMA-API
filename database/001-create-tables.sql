@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS organization (
   email TEXT UNIQUE,
   users_count INTEGER DEFAULT 0,
   is_saturday_off BOOLEAN DEFAULT FALSE,
-  users INTEGER[]
+  users INTEGER[],
   created_on DATE DEFAULT NOW()::date
 );
 CREATE INDEX org_id_name_idx ON organization(id, name);
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS users (
   organization_id INTEGER NOT NULL,
   phone TEXT,
   address TEXT,
-  salary INTEGER CHECK (salary > 0) DEFAULT 0,
+  salary INTEGER DEFAULT 0,
   advance INTEGER DEFAULT 0,
   user_role role DEFAULT 'Worker'
 );
