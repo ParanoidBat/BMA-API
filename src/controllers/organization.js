@@ -32,14 +32,14 @@ const createOrganization = async (req, res) => {
   const fields = req.body;
 
   try {
-    const organization = await db.query(
+    const organization = await db.queryOne(
       `INSERT INTO organization(name, address, phone, email)
       VALUES($1, $2, $3, $4) RETURNING *`,
       [fields.name, fields.address, fields.phone, fields.email]
     );
 
     return res.json({
-      data: organization.rows[0],
+      data: organization,
     });
   } catch (err) {
     return res.json({
@@ -82,7 +82,7 @@ const getOrganizationsList = async (req, res) => {
     );
 
     return res.json({
-      data: organizations.rows,
+      data: organizations,
       page,
     });
   } catch (err) {
@@ -104,7 +104,7 @@ const getOrganizationsList = async (req, res) => {
 const getOrganization = async (req, res) => {
   try {
     // const organization = await Organization.findById(req.params.id);
-    const organization = await db.query(
+    const organization = await db.queryOne(
       `SELECT *
       FROM organization
       WHERE id = $1`,
@@ -113,7 +113,7 @@ const getOrganization = async (req, res) => {
 
     if (organization.rowCount) {
       return res.json({
-        data: organization.rows[0],
+        data: organization,
       });
     } else throw "Organization not found.";
   } catch (err) {
@@ -176,7 +176,7 @@ const updateOrganization = async (req, res) => {
       .join(",");
 
     if (updates) {
-      await db.query(
+      await db.queryOne(
         `UPDATE organization
         SET ${updates}
         WHERE id = $1`,
@@ -220,7 +220,7 @@ const getOrganizationUsersList = async (req, res) => {
   try {
     const { page } = req.query;
 
-    const totalUsersPromise = db.query(
+    const totalUsersPromise = db.queryOne(
       `SELECT ARRAY_LENGTH(users, 1) AS count
       FROM organization
       WHERE id = $1`,
@@ -245,9 +245,9 @@ const getOrganizationUsersList = async (req, res) => {
     const [users, count] = await Promise.all([usersPromise, totalUsersPromise]);
 
     return res.json({
-      data: users.rows,
+      data: users,
       page,
-      count: count.rows[0].count,
+      count: count.count,
     });
   } catch (err) {
     return res.status(500).json({

@@ -38,7 +38,7 @@ const getReportsQueryPromises = (startDate, id, page) => {
     OFFSET $3`,
     [id, startDate, (page - 1) * 10]
   );
-  const countPromise = db.query(
+  const countPromise = db.queryOne(
     `SELECT COUNT(*)
     FROM attendance
     WHERE organization_id = $1
@@ -46,7 +46,7 @@ const getReportsQueryPromises = (startDate, id, page) => {
     AND created <= NOW()::date`,
     [id, startDate]
   );
-  const orgPromise = db.query(
+  const orgPromise = db.queryOne(
     `SELECT users_count, is_saturday_off
     FROM organization
     WHERE id = $1`,
@@ -77,7 +77,7 @@ const getTodayReport = async (req, res) => {
       [id]
     );
 
-    const orgPromise = db.query(
+    const orgPromise = db.queryOne(
       `SELECT users_count
       FROM organization
       WHERE id = $1`,
@@ -87,8 +87,8 @@ const getTodayReport = async (req, res) => {
     const [reportRes, orgRes] = await Promise.all([reportPromise, orgPromise]);
 
     return res.json({
-      data: reportRes.rows,
-      totalAttendance: `${reportRes.rowCount}/${orgRes.rows[0].users_count}`,
+      data: reportRes,
+      totalAttendance: `${reportRes.length}/${orgRes.users_count}`,
     });
   } catch (err) {
     return res.status(500).json({
@@ -126,9 +126,9 @@ const getWeeklyReport = async (req, res) => {
       orgPromise,
     ]);
 
-    if (reportRes.rowCount) {
-      const organization = orgRes.rows[0];
-      var count = countRes.rows[0].count;
+    if (reportRes.length) {
+      const organization = orgRes;
+      var count = countRes.count;
 
       const diff =
         moment(today).diff(startOfWeek, "days") +
@@ -140,7 +140,7 @@ const getWeeklyReport = async (req, res) => {
     }
 
     return res.json({
-      data: reportRes.rows,
+      data: reportRes,
       percentageAttendance,
       page,
       count,
@@ -181,9 +181,9 @@ const getMonthlyReport = async (req, res) => {
       orgPromise,
     ]);
 
-    if (reportRes.rowCount) {
-      const organization = orgRes.rows[0];
-      var count = countRes.rows[0].count;
+    if (reportRes.length) {
+      const organization = orgRes;
+      var count = countRes.count;
 
       const diff = moment(today).diff(startOfMonth, "days") + 1;
 
@@ -204,7 +204,7 @@ const getMonthlyReport = async (req, res) => {
     }
 
     return res.json({
-      data: reportRes.rows,
+      data: reportRes,
       percentageAttendance,
       page,
       count,
@@ -250,9 +250,9 @@ const getThreeMonthsReport = async (req, res) => {
       orgPromise,
     ]);
 
-    if (reportRes.rowCount) {
-      const organization = orgRes.rows[0];
-      var count = countRes.rows[0].count;
+    if (reportRes.length) {
+      const organization = orgRes;
+      var count = countRes.count;
       const diff = moment(today).diff(last3Months, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -272,7 +272,7 @@ const getThreeMonthsReport = async (req, res) => {
     }
 
     return res.json({
-      data: reportRes.rows,
+      data: reportRes,
       percentageAttendance,
       page,
       count,
@@ -314,7 +314,7 @@ const getUserReport = async (req, res) => {
       OFFSET $3`,
       [userID, startOfMonth, (page - 1) * 10]
     );
-    const countPromise = db.query(
+    const countPromise = db.queryOne(
       `SELECT COUNT(*)
       FROM attendance
       WHERE user_id = $1
@@ -322,7 +322,7 @@ const getUserReport = async (req, res) => {
       AND created <= NOW()::date`,
       [userID, startOfMonth]
     );
-    const orgPromise = db.query(
+    const orgPromise = db.queryOne(
       `SELECT is_saturday_off
       FROM organization
       WHERE id = $1`,
@@ -335,9 +335,9 @@ const getUserReport = async (req, res) => {
       orgPromise,
     ]);
 
-    if (reportRes.rowCount) {
-      const organization = orgRes.rows[0];
-      var count = countRes.rows[0].count;
+    if (reportRes.length) {
+      const organization = orgRes;
+      var count = countRes.count;
       const diff = moment(today).diff(startOfMonth, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -355,7 +355,7 @@ const getUserReport = async (req, res) => {
     }
 
     return res.json({
-      data: reportRes.rows,
+      data: reportRes,
       percentageAttendance,
       page,
       count,
@@ -402,14 +402,14 @@ const getFilteredUserReport = async (req, res) => {
       OFFSET $4`,
       [userID, from, to, (page - 1) * 10]
     );
-    const countPromise = db.query(
+    const countPromise = db.queryOne(
       `SELECT COUNT(*)
       FROM attendance
       WHERE user_id = $1
       AND created BETWEEN $2::date AND $3::date`,
       [userID, from, to]
     );
-    const orgPromise = db.query(
+    const orgPromise = db.queryOne(
       `SELECT is_saturday_off
       FROM organization
       WHERE id = $1`,
@@ -422,9 +422,9 @@ const getFilteredUserReport = async (req, res) => {
       orgPromise,
     ]);
 
-    if (reportRes.rowCount) {
-      const organization = orgRes.rows[0];
-      var count = countRes.rows[0].count;
+    if (reportRes.length) {
+      const organization = orgRes;
+      var count = countRes.count;
       var diff = from == to ? 0 : moment(to).diff(from, "days") + 1;
       var workDays = diff - Math.floor(diff / 7);
 
@@ -448,7 +448,7 @@ const getFilteredUserReport = async (req, res) => {
     }
 
     return res.json({
-      data: reportRes.rows,
+      data: reportRes,
       percentageAttendance,
       page,
       count,
@@ -494,14 +494,14 @@ const getCustomReport = async (req, res) => {
       OFFSET $4`,
       [id, from, to, (page - 1) * 10]
     );
-    const countPromise = db.query(
+    const countPromise = db.queryOne(
       `SELECT COUNT(*)
       FROM attendance
       WHERE organization_id = $1
       AND created BETWEEN $2::date AND $3::date`,
       [id, from, to]
     );
-    const orgPromise = db.query(
+    const orgPromise = db.queryOne(
       `SELECT users_count, is_saturday_off
       FROM organization
       WHERE id = $1`,
@@ -514,9 +514,9 @@ const getCustomReport = async (req, res) => {
       orgPromise,
     ]);
 
-    if (reportRes.rowCount) {
-      const organization = orgRes.rows[0];
-      var count = countRes.rows[0].count;
+    if (reportRes.length) {
+      const organization = orgRes;
+      var count = countRes.count;
       var diff = from == to ? 0 : moment(to).diff(from, "days") + 1;
       var workDays = diff - Math.floor(diff / 7);
 
@@ -542,7 +542,7 @@ const getCustomReport = async (req, res) => {
     }
 
     return res.json({
-      data: reportRes.rows,
+      data: reportRes,
       percentageAttendance,
       page,
       count,

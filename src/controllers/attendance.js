@@ -21,7 +21,7 @@ const checkin = async (req, res) => {
   const { finger_id, organization_id, date, check_in } = req.body;
 
   try {
-    const userRes = await db.query(
+    const userRes = await db.queryOne(
       `SELECT id, name
       FROM users
       WHERE organization_id = $1
@@ -29,11 +29,11 @@ const checkin = async (req, res) => {
       [organization_id, finger_id]
     );
 
-    if (!userRes.rowCount) {
+    if (!userRes) {
       throw "No such user";
     }
 
-    const user = userRes.rows[0];
+    const user = userRes;
 
     const uniqueAttendanceString = `${user.id}${date}`;
 
@@ -79,7 +79,7 @@ const checkout = async (req, res) => {
   const { authID, date, organizationID, checkOut } = req.body;
 
   try {
-    await db.query(
+    await db.queryOne(
       `UPDATE attendance
       SET check_out = $1
       WHERE organization_id = $2

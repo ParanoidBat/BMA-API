@@ -50,7 +50,7 @@ const verifyOTP = async (req, res) => {
   const { otp, email } = req.body;
 
   try {
-    const otpRes = await db.query(
+    const otpRes = await db.queryOne(
       `SELECT true AS exist
       FROM otp
       WHERE otp = $1
@@ -60,7 +60,7 @@ const verifyOTP = async (req, res) => {
     );
 
     return res.json({
-      data: Boolean(otpRes.rowCount),
+      data: Boolean(otpRes),
     });
   } catch (error) {
     return res.json({
@@ -86,7 +86,7 @@ const resetPassword = async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 10);
 
   try {
-    await db.query(
+    await db.queryOne(
       `UPDATE credentials
       SET password = $1
       WHERE email = $2`,

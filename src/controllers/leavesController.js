@@ -51,7 +51,7 @@ const getAllRequests = async (req, res) => {
     const requests = await db.query(query);
 
     return res.json({
-      data: requests.rows,
+      data: requests,
     });
   } catch (err) {
     console.error(err);
@@ -80,7 +80,7 @@ const getUserRequests = async (req, res) => {
     );
 
     return res.json({
-      data: response.rows,
+      data: response,
     });
   } catch (error) {
     return res.status(500).json({
@@ -120,7 +120,7 @@ const createRequest = async (req, res) => {
   const { userID, orgID, from, to, reason } = req.body;
 
   try {
-    const response = await db.query(
+    const response = await db.queryOne(
       `INSERT INTO leave_request(user_id, organization_id, from_date, to_date, reason)
       VALUES($1, $2, $3, $4, $5)
       RETURNING *`,
@@ -128,7 +128,7 @@ const createRequest = async (req, res) => {
     );
 
     return res.json({
-      data: response.rows[0],
+      data: response,
     });
   } catch (err) {
     console.error(err);
@@ -152,7 +152,7 @@ const updateRequest = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const response = await db.query(
+    const response = await db.queryOne(
       `UPDATE leave_request
       SET leave_status = $1
       WHERE id = $2
@@ -161,7 +161,7 @@ const updateRequest = async (req, res) => {
     );
 
     return res.json({
-      data: response.rows[0],
+      data: response,
     });
   } catch (err) {
     return res.status(500).json({

@@ -30,19 +30,19 @@ const signup = async (req, res) => {
   let organizationRes;
 
   try {
-    organizationRes = await db.query(
+    organizationRes = await db.queryOne(
       `INSERT INTO organization(name, address, phone, email)
       VALUES($1, $2, $3, $4) RETURNING id`,
       [fields.orgName, fields.orgAddress, fields.orgPhone, fields.orgEmail]
     );
 
-    const userRes = await db.query(
+    const userRes = await db.queryOne(
       `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, user_role)
       VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
       [
         fields.name,
         fields.finger_id,
-        organizationRes.rows[0].id,
+        organizationRes.id,
         fields.phone,
         fields.address,
         fields.salary,
@@ -52,10 +52,10 @@ const signup = async (req, res) => {
 
     const password = await bcrypt.hash(fields.password, 10);
 
-    await db.query(
+    await db.queryOne(
       `INSERT INTO credentials(email, password, user_id, phone)
       VALUES($1, $2, $3, $4)`,
-      [fields.email, password, userRes.rows[0].id, fields.phone]
+      [fields.email, password, userRes.id, fields.phone]
     );
 
     return res.json({
@@ -68,7 +68,7 @@ const signup = async (req, res) => {
       await db.query(
         `DELETE FROM organization
         WHERE id = $1`,
-        [organizationRes.rows[0].id]
+        [organizationRes.id]
       );
     }
 

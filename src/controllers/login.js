@@ -35,7 +35,7 @@ const login = async (req, res) => {
       condition = `phone = '${phone}'`;
     }
 
-    const response = await db.query(
+    const response = await db.queryOne(
       `SELECT *, c.password
       FROM users, credentials c
       WHERE id = (
@@ -45,7 +45,7 @@ const login = async (req, res) => {
       )`
     );
 
-    const credentials = response.rows[0];
+    const credentials = response;
 
     if (credentials && (await bcrypt.compare(password, credentials.password))) {
       const token = jwt.sign(
