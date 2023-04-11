@@ -162,7 +162,7 @@ const updateUser = async (req, res) => {
 
     let response;
     if (updates) {
-      response = await db.query(
+      response = await db.queryOne(
         `UPDATE users
         SET ${updates}
         WHERE id = $1
@@ -171,7 +171,7 @@ const updateUser = async (req, res) => {
       );
     }
 
-    return res.json({ data: response.rows[0] });
+    return res.json({ data: response });
   } catch (err) {
     return res.status(500).json({
       error: "Error: Couldn't update user.",
@@ -213,16 +213,20 @@ const updateUserWithAuthID = async (req, res) => {
       .join(",");
 
     if (updates) {
-      const response = await db.query(
+      const response = await db.queryOne(
         `UPDATE users
-          SET ${updates}
-          WHERE finger_id = $1
-          AND organization_id = $2
-          RETURNING *`,
+        SET ${updates}
+        WHERE finger_id = $1
+        AND organization_id = $2
+        RETURNING *`,
         [fingerID, orgID]
       );
 
-      user = response.rows[0];
+      if (!response) {
+        throw "User doesn't exist";
+      }
+
+      user = response;
       const hashedPassword = await bcrypt.hash(password, 10);
 
       await db.query(
@@ -254,7 +258,7 @@ const deleteUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await db.query(
+    await db.queryOne(
       `DELETE FROM users
       WHERE id = $1`,
       [id]
@@ -282,16 +286,16 @@ const getUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const response = await db.query(
+    const response = await db.queryOne(
       `SELECT *
       FROM users
       WHERE id = $1`,
       [id]
     );
 
-    if (response.rowCount) {
+    if (response) {
       return res.json({
-        data: response.rows[0],
+        data: response,
       });
     } else throw "User Doesn't Exist";
   } catch (err) {
@@ -327,7 +331,7 @@ const getUsersList = async (req, res) => {
     );
 
     return res.json({
-      data: response.rows,
+      data: response,
       page,
     });
   } catch (err) {
@@ -370,7 +374,7 @@ const getPercentageAttendance = async (req, res) => {
       ORDER BY created`,
       [userID, startOfMonth]
     );
-    const orgPromise = db.query(
+    const orgPromise = db.queryOne(
       `SELECT is_saturday_off
       FROM organization
       WHERE id = $1`,
@@ -383,8 +387,8 @@ const getPercentageAttendance = async (req, res) => {
       orgPromise,
     ]);
 
-    if (attendanceRes.rowCount) {
-      const organization = orgRes.rows[0];
+    if (attendanceRes.length) {
+      const organization = orgRes;
       const diff = moment(today).diff(startOfMonth, "days") + 1;
 
       today = moment().format("YYYY-MM-ddd");
@@ -399,12 +403,12 @@ const getPercentageAttendance = async (req, res) => {
         workDays -= 1;
 
       const leaves = calculateLeaves(
-        leavesRes.rows,
+        leavesRes,
         organization.is_saturday_off,
-        attendanceRes.rows
+        attendanceRes
       );
       percentageAttendance = Math.floor(
-        ((attendanceRes.rowCount + leaves) * 100) / workDays
+        ((attendanceRes.length + leaves) * 100) / workDays
       );
     }
 
