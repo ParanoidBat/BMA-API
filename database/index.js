@@ -1,10 +1,18 @@
-var Pool = require("pg-pool");
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
+const Pool = require("pg-pool");
+const url = require("url");
+
+const params = url.parse(process.env.DATABASE_URL);
+const auth = params.auth.split(":");
 
 var pool = new Pool({
-  database: "postgres",
-  user: "postgres",
-  password: "password",
-  port: 5432,
+  database: params.pathname.split("/")[1],
+  user: auth[0],
+  password: auth[1],
+  port: params.port,
   ssl: false,
   max: 20, // set pool max size to 20
   idleTimeoutMillis: 1000, // close idle clients after 1 second
