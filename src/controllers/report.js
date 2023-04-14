@@ -109,7 +109,8 @@ const getTodayReport = async (req, res) => {
 const getWeeklyReport = async (req, res) => {
   try {
     const { id } = req.params;
-    const { page } = req.query;
+    const page = parseInt(req.query.page);
+
     const startOfWeek = moment().clone().startOf("week").format("YYYY-MM-DD");
     const today = moment().format("YYYY-MM-DD");
     let percentageAttendance = 0;
@@ -139,6 +140,11 @@ const getWeeklyReport = async (req, res) => {
       );
     }
 
+    console.log("data", reportRes);
+    console.log("percentage", percentageAttendance);
+    console.log("page", page);
+    console.log("count", count);
+
     return res.json({
       data: reportRes,
       percentageAttendance,
@@ -164,7 +170,8 @@ const getWeeklyReport = async (req, res) => {
 const getMonthlyReport = async (req, res) => {
   try {
     const { id } = req.params;
-    const { page } = req.query;
+    const page = parseInt(req.query.page);
+
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
@@ -228,7 +235,8 @@ const getMonthlyReport = async (req, res) => {
 const getThreeMonthsReport = async (req, res) => {
   try {
     const { id } = req.params;
-    const { page } = req.query;
+    const page = parseInt(req.query.page);
+
     var last3Months = moment()
       .clone()
       .subtract(3, "months")
@@ -298,7 +306,8 @@ const getThreeMonthsReport = async (req, res) => {
 const getUserReport = async (req, res) => {
   try {
     const { orgID, userID } = req.params;
-    const { page } = req.query;
+    const page = parseInt(req.query.page);
+
     var startOfMonth = moment().clone().startOf("month").format("YYYY-MM-DD");
     var today = moment().format("YYYY-MM-DD");
     var percentageAttendance = 0;
@@ -383,7 +392,8 @@ const getUserReport = async (req, res) => {
 const getFilteredUserReport = async (req, res) => {
   try {
     var { from, to } = req.body;
-    const { page } = req.query;
+    const page = parseInt(req.query.page);
+
     const { userID, orgID } = req.params;
     var percentageAttendance = 0;
 
@@ -475,7 +485,8 @@ const getFilteredUserReport = async (req, res) => {
 const getCustomReport = async (req, res) => {
   try {
     var { from, to } = req.body;
-    const { page } = req.query;
+    const page = parseInt(req.query.page);
+
     const { id } = req.params;
     var percentageAttendance = 0;
 
