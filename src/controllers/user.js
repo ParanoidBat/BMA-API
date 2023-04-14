@@ -84,9 +84,9 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
  */
 const createUser = async (req, res) => {
   const fields = req.body;
-  // TODO: Default values are overriden by undefined, when a field doesn't exist. This can be fixed when making generic db query functions
+  // TODO: Create 2 seperate user creation endpoints for creating user through and device
   try {
-    const response = await db.query(
+    const response = await db.queryOne(
       `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, user_role)
       VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [
@@ -100,15 +100,16 @@ const createUser = async (req, res) => {
       ]
     );
 
-    if (!response.rowCount) {
+    if (!response) {
       throw "User not made";
     }
 
-    const user = response.rows[0];
+    const user = response;
 
     if (fields.password) {
       const password = await bcrypt.hash(fields.password, 10);
-      await db.query(
+
+      await db.queryOne(
         `INSERT INTO credentials(email, password, user_id, phone)
         VALUES($1, $2, $3, $4)
         `,
@@ -116,7 +117,7 @@ const createUser = async (req, res) => {
       );
     }
 
-    await db.query(
+    await db.queryOne(
       `UPDATE organization
       SET
       users = users || $1::INTEGER,

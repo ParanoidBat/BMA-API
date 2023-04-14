@@ -36,13 +36,14 @@ const login = async (req, res) => {
     }
 
     const response = await db.queryOne(
-      `SELECT *, c.password
-      FROM users, credentials c
-      WHERE id = (
-        SELECT user_id
+      `WITH password AS (
+        SELECT password, user_id
         FROM credentials
         WHERE ${condition}
-      )`
+      )
+      SELECT u.*, p.password
+      FROM users u, password p
+      WHERE u.id = p.user_id`
     );
 
     const credentials = response;
