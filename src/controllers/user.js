@@ -84,20 +84,20 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
  */
 const createUser = async (req, res) => {
   const fields = req.body;
-  // TODO: Create 2 seperate user creation endpoints for creating user through and device
+  const email = fields.email;
+  const password = fields.password;
+
   try {
+    delete fields.email;
+    delete fields.password;
+
+    const columns = Object.keys(fields);
+    const values = Object.values(fields);
+
     const response = await db.queryOne(
-      `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, user_role)
-      VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [
-        fields.name,
-        fields.finger_id,
-        fields.organization_id,
-        fields.phone,
-        fields.address,
-        fields.salary,
-        fields.user_role,
-      ]
+      `INSERT INTO users(${columns.join(",")}) VALUES(${values
+        .map((val) => `'${val}'`)
+        .join(",")}) RETURNING *`
     );
 
     if (!response) {
@@ -106,25 +106,16 @@ const createUser = async (req, res) => {
 
     const user = response;
 
-    if (fields.password) {
+    if (password) {
       const password = await bcrypt.hash(fields.password, 10);
 
       await db.queryOne(
         `INSERT INTO credentials(email, password, user_id, phone)
         VALUES($1, $2, $3, $4)
         `,
-        [fields.email, password, user.id, user.phone]
+        [email, password, user.id, user.phone]
       );
     }
-
-    await db.queryOne(
-      `UPDATE organization
-      SET
-      users = users || $1::INTEGER,
-      users_count = users_count + 1
-      WHERE id = $2`,
-      [user.id, user.organization_id]
-    );
 
     return res.json({
       data: user,
@@ -133,6 +124,41 @@ const createUser = async (req, res) => {
     console.error(err);
     return res.status(500).json({
       error: "Error: Couldn't create user.",
+    });
+  }
+};
+
+const createUserFromDevice = async (req, res) => {
+  const { name, organization_id, finger_id } = req.body;
+
+  try {
+    const user = await db.queryOne(
+      `INSERT INTO users(name, organization_id, finger_id)
+      VALUES ($1, $2, $3)
+      RETURNING id`,
+      [name, organization_id, finger_id]
+    );
+
+    if (!user) {
+      throw "User not created";
+    }
+
+    await db.queryOne(
+      `UPDATE organization
+      SET
+      users = users || $1::INTEGER,
+      users_count = users_count + 1
+      WHERE id = $2`,
+      [user.id, organization_id]
+    );
+
+    return res.json({
+      data: true,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Error: Couldn't create user",
     });
   }
 };
@@ -426,6 +452,7 @@ const getPercentageAttendance = async (req, res) => {
 
 module.exports = {
   createUser,
+  createUserFromDevice,
   updateUser,
   updateUserWithAuthID,
   deleteUser,
