@@ -76,7 +76,7 @@ const checkin = async (req, res) => {
  */
 const checkout = async (req, res) => {
   // Doesn't matter if checked out on same day or not.
-  const { authID, date, organizationID, checkOut } = req.body;
+  const { finger_id, date, organization_id, check_out } = req.body;
 
   try {
     await db.queryOne(
@@ -85,7 +85,7 @@ const checkout = async (req, res) => {
       WHERE organization_id = $2
       AND finger_id = $3
       AND created = $4`,
-      [checkOut, organizationID, authID, date]
+      [check_out, organization_id, finger_id, date]
     );
 
     return res.json({
