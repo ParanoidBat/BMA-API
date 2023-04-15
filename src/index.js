@@ -21,7 +21,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.use("/user", userRoutes);
+app.use("/user", authenticate, userRoutes);
 app.use("/attendance", attendanceRoutes);
 app.use("/report", reportRoutes);
 app.use("/organization", organizationRoutes);

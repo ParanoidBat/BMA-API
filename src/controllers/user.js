@@ -107,13 +107,13 @@ const createUser = async (req, res) => {
     const user = response;
 
     if (password) {
-      const password = await bcrypt.hash(fields.password, 10);
+      const encryptedPassword = await bcrypt.hash(password, 10);
 
       await db.queryOne(
         `INSERT INTO credentials(email, password, user_id, phone)
         VALUES($1, $2, $3, $4)
         `,
-        [email, password, user.id, user.phone]
+        [email, encryptedPassword, user.id, user.phone]
       );
     }
 

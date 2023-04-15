@@ -48,11 +48,14 @@ const login = async (req, res) => {
 
     const credentials = response;
 
+    const tokenExpiry = process.env.NODE_ENV === "production" ? "10m" : "1h";
+    console.log(tokenExpiry);
+
     if (credentials && (await bcrypt.compare(password, credentials.password))) {
       const token = jwt.sign(
         { user_id: credentials.id, email },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: tokenExpiry }
       );
 
       delete credentials.password;
@@ -69,6 +72,7 @@ const login = async (req, res) => {
       });
     }
   } catch (err) {
+    console.error(err);
     return res.json({
       error: "Credentials don't match",
     });
