@@ -128,6 +128,17 @@ const createUser = async (req, res) => {
   }
 };
 
+/**
+ * @api {post} /user/create_from_device/ Create new user from device
+ * @apiName CreateUserFromDevice
+ * @apiGroup User
+ *
+ * @apiBody {String} name
+ * @apiBody {Number} organization_id
+ * @apiBody {Number} finger_id
+ *
+ * @apiSuccess {Object} data data set to true
+ */
 const createUserFromDevice = async (req, res) => {
   const { name, organization_id, finger_id } = req.body;
 
@@ -181,6 +192,10 @@ const updateUser = async (req, res) => {
   const fields = req.body;
 
   try {
+    if (fields.salary !== undefined && parseInt(fields.salary) < 0) {
+      fields.salary = 0;
+    }
+
     const updates = Object.entries(fields)
       .map(([key, val]) => {
         return `${key} = '${val}'`;
@@ -233,6 +248,11 @@ const updateUserWithAuthID = async (req, res) => {
 
   try {
     let user;
+
+    if (fields.salary !== undefined && parseInt(fields.salary) < 0) {
+      fields.salary = 0;
+    }
+
     const updates = Object.entries(fields)
       .map(([key, val]) => {
         return `${key} = '${val}'`;
