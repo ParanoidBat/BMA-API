@@ -140,7 +140,8 @@ const createUser = async (req, res) => {
  * @apiSuccess {Object} data data set to true
  */
 const createUserFromDevice = async (req, res) => {
-  const { name, organization_id, finger_id } = req.body;
+  const { name, finger_id } = req.body;
+  const organization_id = parseInt(req.body.organization_id);
 
   try {
     const user = await db.queryOne(

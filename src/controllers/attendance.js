@@ -18,7 +18,8 @@ const db = require("../../database");
  * @apiSuccess {Boolean} data { data: true }
  */
 const checkin = async (req, res) => {
-  const { finger_id, organization_id, date, check_in } = req.body;
+  const { finger_id, date, check_in } = req.body;
+  const organization_id = parseInt(req.body.organization_id);
 
   try {
     const userRes = await db.queryOne(
@@ -76,7 +77,8 @@ const checkin = async (req, res) => {
  */
 const checkout = async (req, res) => {
   // Doesn't matter if checked out on same day or not.
-  const { finger_id, date, organization_id, check_out } = req.body;
+  const { finger_id, date, check_out } = req.body;
+  const organization_id = parseInt(req.body.organization_id);
 
   try {
     await db.queryOne(
