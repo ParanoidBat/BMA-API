@@ -14,6 +14,7 @@ const loginRoute = require("./routes/login");
 const signupRoute = require("./routes/signup");
 const leavesRoute = require("./routes/leavesRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
+const commonRoutes = require("./routes/commonRoutes");
 
 const authenticate = require("./middlewares/auth");
 
@@ -23,12 +24,13 @@ app.use(cors());
 
 app.use("/user", authenticate, userRoutes);
 app.use("/attendance", attendanceRoutes);
-app.use("/report", reportRoutes);
-app.use("/organization", organizationRoutes);
-app.use("/leave", leavesRoute);
+app.use("/report", authenticate, reportRoutes);
+app.use("/organization", authenticate, organizationRoutes);
+app.use("/leave", authenticate, leavesRoute);
 app.use("/login", loginRoute);
 app.use("/signup", signupRoute);
 app.use("/password", passwordRoutes);
+app.use(commonRoutes);
 app.use("/doc", express.static(path.join(__dirname, "../doc")));
 
 const port = process.env.PORT || 4000;

@@ -69,12 +69,12 @@ const calculateLeaves = (userLeaves, isSatOff, attendances) => {
  * @apiName CreateUser
  * @apiGroup User
  *
- * @apiDescription Requires either email or phone
+ * @apiDescription Used to create admin or manager user
  *
  * @apiBody {String} name User's name
  * @apiBody {Number} finger_id User's finger ID as assigned by the BMA machine
  * @apiBody {String} organization_id Organization's ID the user belongs to
- * @apiBody {String} [email]
+ * @apiBody {String} email
  * @apiBody {String} password
  * @apiBody {String} [phone]
  * @apiBody {String} [address]

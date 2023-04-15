@@ -1,5 +1,4 @@
 const {
-  createOrganization,
   getOrganization,
   getOrganizationsList,
   getOrganizationUsersList,
@@ -11,7 +10,7 @@ const express = require("express");
 
 const router = express.Router();
 
-router.route("/").get(getOrganizationsList).post(createOrganization);
+router.route("/").get(getOrganizationsList);
 router
   .route("/:id")
   .get(getOrganization)
