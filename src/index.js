@@ -17,7 +17,7 @@ const passwordRoutes = require("./routes/passwordRoutes");
 const commonRoutes = require("./routes/commonRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 
-const authenticate = require("./middlewares/auth");
+const authenticate = require("./middlewares/authenticate");
 const authorize = require("./middlewares/adminAuthorize");
 
 const app = express();

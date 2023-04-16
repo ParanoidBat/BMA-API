@@ -49,7 +49,6 @@ const login = async (req, res) => {
     const credentials = response;
 
     const tokenExpiry = process.env.NODE_ENV === "production" ? "10m" : "1h";
-    console.log(tokenExpiry);
 
     if (credentials && (await bcrypt.compare(password, credentials.password))) {
       const token = jwt.sign(
