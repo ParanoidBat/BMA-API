@@ -15,8 +15,10 @@ const signupRoute = require("./routes/signup");
 const leavesRoute = require("./routes/leavesRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
 const commonRoutes = require("./routes/commonRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const authenticate = require("./middlewares/auth");
+const authorize = require("./middlewares/adminAuthorize");
 
 const app = express();
 app.use(express.json());
@@ -31,6 +33,7 @@ app.use("/login", loginRoute);
 app.use("/signup", signupRoute);
 app.use("/password", passwordRoutes);
 app.use(commonRoutes);
+app.use("/admin", [authenticate, authorize], adminRoutes);
 app.use("/doc", express.static(path.join(__dirname, "../doc")));
 
 const port = process.env.PORT || 4000;

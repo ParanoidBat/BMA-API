@@ -27,10 +27,11 @@ const authenticate = (req, res, next) => {
     if (exp.diff(iat, "minutes") > expiryInterval) {
       throw "Expired";
     }
+
+    return next();
   } catch (err) {
     return res.status(401).send("Invalid Token");
   }
-  return next();
 };
 
 module.exports = authenticate;
