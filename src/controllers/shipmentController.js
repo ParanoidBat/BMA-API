@@ -48,7 +48,7 @@ const getDetails = async (req, res) => {
  * @apiBody {String} phone
  * @apiBody {String} [email]
  *
- * @apiSuccess {Boolean} data
+ * @apiSuccess {Object} data
  */
 const createOrUpdateDetails = async (req, res) => {
   const { id } = req.params;
@@ -61,17 +61,18 @@ const createOrUpdateDetails = async (req, res) => {
     .join(",");
 
   try {
-    await db.queryOne(
+    const details = await db.queryOne(
       `INSERT INTO shipment(user_id, address, phone, email)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT(user_id) DO
       UPDATE SET ${updates}
-      WHERE id = $1`,
+      WHERE id = $1
+      RETURNING *`,
       [id, fields.address, fields.phone, fields.email]
     );
 
     return res.json({
-      data: true,
+      data: details,
     });
   } catch (error) {
     console.error(error);
