@@ -66,7 +66,7 @@ const createOrUpdateDetails = async (req, res) => {
       VALUES ($1, $2, $3, $4)
       ON CONFLICT(user_id) DO
       UPDATE SET ${updates}
-      WHERE id = $1
+      WHERE shipment.user_id = $1
       RETURNING *`,
       [id, fields.address, fields.phone, fields.email]
     );

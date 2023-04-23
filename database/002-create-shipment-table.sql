@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS shipment(
-  user_id INTEGER NOT NULL,
+  user_id INTEGER UNIQUE NOT NULL,
   address TEXT NOT NULL,
   phone TEXT,
   email TEXT

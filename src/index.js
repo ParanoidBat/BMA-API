@@ -17,6 +17,7 @@ const passwordRoutes = require("./routes/passwordRoutes");
 const commonRoutes = require("./routes/commonRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const shipmentRoutes = require("./routes/shipmentRoutes");
+const orderRoute = require("./routes/orderRoute");
 
 const authenticate = require("./middlewares/authenticate");
 const authorize = require("./middlewares/adminAuthorize");
@@ -31,6 +32,7 @@ app.use("/report", authenticate, reportRoutes);
 app.use("/organization", authenticate, organizationRoutes);
 app.use("/leave", authenticate, leavesRoute);
 app.use("/shipment", shipmentRoutes);
+app.use("/order", orderRoute);
 app.use("/login", loginRoute);
 app.use("/signup", signupRoute);
 app.use("/password", passwordRoutes);
