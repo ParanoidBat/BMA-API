@@ -37,7 +37,7 @@ const signup = async (req, res) => {
     );
 
     const userRes = await db.queryOne(
-      `INSERT INTO users(name, finger_id, organization_id, phone, address, salary, user_role)
+      `INSERT INTO users(name, finger_id, organization_id, phone, address, user_role)
       VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
       [
         fields.name,
@@ -45,7 +45,6 @@ const signup = async (req, res) => {
         organizationRes.id,
         fields.phone,
         fields.address,
-        fields.salary,
         fields.user_role,
       ]
     );
@@ -59,7 +58,7 @@ const signup = async (req, res) => {
     );
 
     return res.json({
-      data: { userID: userRes.rows[0].id, orgID: organizationRes.rows[0].id },
+      data: { userID: userRes.id, orgID: organizationRes.id },
     });
   } catch (err) {
     console.error(err);
