@@ -32,7 +32,7 @@ app.use("/attendance", authenticate, attendanceRoutes);
 app.use("/report", authenticate, reportRoutes);
 app.use("/organization", authenticate, organizationRoutes);
 app.use("/leave", authenticate, leavesRoute);
-app.use("/package", authenticate, packageRoute);
+app.use("/package", packageRoute);
 app.use("/shipment", shipmentRoutes);
 app.use("/order", orderRoute);
 app.use("/login", loginRoute);
