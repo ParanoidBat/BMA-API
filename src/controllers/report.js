@@ -140,11 +140,6 @@ const getWeeklyReport = async (req, res) => {
       );
     }
 
-    console.log("data", reportRes);
-    console.log("percentage", percentageAttendance);
-    console.log("page", page);
-    console.log("count", count);
-
     return res.json({
       data: reportRes,
       percentageAttendance,

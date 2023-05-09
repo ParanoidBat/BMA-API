@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE users ADD COLUMN package TEXT, ADD COLUMN last_paid DATE;
+
+END;

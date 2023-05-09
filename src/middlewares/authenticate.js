@@ -30,6 +30,7 @@ const authenticate = (req, res, next) => {
 
     return next();
   } catch (err) {
+    console.error(err);
     return res.status(401).send("Invalid Token");
   }
 };
