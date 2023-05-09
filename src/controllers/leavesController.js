@@ -144,27 +144,30 @@ const createRequest = async (req, res) => {
  * @apiGroup Leaves
  *
  * @apiParam {String} id Request ID
- * @apiBody {String="Pending", "Accepted", "Rejected"} [status] New status of the request
+ * @apiBody {String="Pending", "Accepted", "Rejected"} status New status of the request
  *
  * @apiSuccess {Object} data Leave object, same as of 'Get All Leaves'
  */
 const updateRequest = async (req, res) => {
   const { id } = req.params;
+  const { status, reject_reason } = req.body;
 
   try {
     const response = await db.queryOne(
       `UPDATE leave_request
-      SET leave_status = $1
-      WHERE id = $2
+      SET leave_status = $1,
+      reject_reason = $2
+      WHERE id = $3
       RETURNING *`,
-      [req.body.status, id]
+      [status, reject_reason, id]
     );
 
     return res.json({
       data: response,
     });
   } catch (err) {
-    return res.status(500).json({
+    console.error(err);
+    return res.json({
       error: "Error: Couldn't update request.",
     });
   }
