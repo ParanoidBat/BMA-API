@@ -1,8 +1,8 @@
 const express = require("express");
-const { getPackages } = require("../controllers/package");
+const { getPackages, applyPackage } = require("../controllers/package");
 
 const router = express.Router();
 
-router.route("/").get(getPackages);
+router.route("/").get(getPackages).post(applyPackage);
 
 module.exports = router;
