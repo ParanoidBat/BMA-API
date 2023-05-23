@@ -1,11 +1,31 @@
 const db = require("../../database");
 
+const createPackagesObject = (packageArray) => {
+  const packages = {};
+  packageArray.forEach((el) => {
+    const product_name = el.product_name;
+    delete el.product_name;
+
+    if (!packages[product_name]) {
+      Object.assign(packages, {
+        [product_name]: [el],
+      });
+    } else {
+      packages[product_name].push(el);
+    }
+  });
+
+  return packages;
+};
+
 const getAllPackages = async (req, res) => {
   try {
-    const packages = await db.query(
-      `SELECT id, price, interval
+    const result = await db.query(
+      `SELECT name, product_name, price, interval
       FROM package`
     );
+
+    const packages = createPackagesObject(result);
 
     return res.json({ data: packages });
   } catch (error) {
@@ -31,19 +51,7 @@ const getRelevantPackages = async (req, res) => {
       [org_id]
     );
 
-    const packages = {};
-    result.forEach((el) => {
-      const product_name = el.product_name;
-      delete el.product_name;
-
-      if (!packages[product_name]) {
-        Object.assign(packages, {
-          [product_name]: [el],
-        });
-      } else {
-        packages[product_name].push(el);
-      }
-    });
+    const packages = createPackagesObject(result);
 
     return res.json({
       data: packages,
