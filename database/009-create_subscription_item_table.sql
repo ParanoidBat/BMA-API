@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS subscription_item(
   quantity INTEGER DEFAULT 1,
   package TEXT,
   status item_status DEFAULT 'open',
-  due_at DATE DEFAULT NOW() + INTERVAL '10 days'
+  due_on DATE DEFAULT NOW() + INTERVAL '10 days'
 );
 
 CREATE INDEX id_package_status_idx ON subscription_item(id, package, status);

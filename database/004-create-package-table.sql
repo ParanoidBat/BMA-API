@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS package(
-  id TEXT NOT NULL,
+  name TEXT NOT NULL,
   product_name TEXT NOT NULL,
   interval TEXT NOT NULL,
   interval_in_number INTEGER NOT NULL,

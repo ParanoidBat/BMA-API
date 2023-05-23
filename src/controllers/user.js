@@ -471,26 +471,6 @@ const getPercentageAttendance = async (req, res) => {
   }
 };
 
-const getUserPackage = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const result = await db.queryOne(
-      `SELECT package
-      FROM users
-      WHERE id = $1`,
-      [id]
-    );
-
-    return res.json({
-      data: result.package,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.json({ error: error.message });
-  }
-};
-
 module.exports = {
   createUser,
   createUserFromDevice,
@@ -498,7 +478,6 @@ module.exports = {
   updateUserWithAuthID,
   deleteUser,
   getUser,
-  getUserPackage,
   getUsersList,
   getPercentageAttendance,
 };

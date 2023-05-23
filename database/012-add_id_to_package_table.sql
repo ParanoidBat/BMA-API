@@ -1,0 +1,15 @@
+BEGIN;
+
+ALTER TABLE package ADD COLUMN id INTEGER NOT NULL;
+
+CREATE SEQUENCE package_id_seq
+  START WITH 1
+  INCREMENT BY 1
+  NO MINVALUE
+  NO MAXVALUE
+  CACHE 1;
+
+ALTER SEQUENCE package_id_seq OWNED BY package.id;
+ALTER TABLE ONLY package ALTER COLUMN id SET DEFAULT nextval('package_id_seq'::regclass);
+
+END;
