@@ -103,7 +103,6 @@ const getOrganizationsList = async (req, res) => {
  */
 const getOrganization = async (req, res) => {
   try {
-    // const organization = await Organization.findById(req.params.id);
     const organization = await db.queryOne(
       `SELECT *
       FROM organization
@@ -111,7 +110,7 @@ const getOrganization = async (req, res) => {
       [req.params.id]
     );
 
-    if (organization.rowCount) {
+    if (organization) {
       return res.json({
         data: organization,
       });
